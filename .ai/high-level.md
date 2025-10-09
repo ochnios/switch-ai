@@ -1,43 +1,43 @@
-# Aplikacja - switch-ai (MVP)
+# Application - switch-ai (MVP)
 
-## Główny problem
+## Main Problem
 
-Użytkownicy zaawansowanych modeli językowych (LLM) napotykają dwa kluczowe problemy w standardowych interfejsach typu czat:
+Users of advanced language models (LLM) face two key problems in standard chat interfaces:
 
-1. **Brak elastyczności w wyborze modeli:** Różne modele AI mają różne specjalizacje. Przełączanie się między nimi wymaga otwierania wielu kart i ręcznego kopiowania kontekstu rozmowy, co jest niewygodne i przerywa płynność pracy.
-2. **Liniowość konwersacji:** Eksploracja alternatywnych pomysłów lub zadawanie pytań pobocznych w ramach jednej rozmowy jest utrudniona. Obecne rozwiązania zmuszają do "zaśmiecania" głównego wątku lub rozpoczynania nowej rozmowy od zera, co prowadzi do utraty kontekstu. Tylko nieliczne z nich umożliwiają tworzenie rozgałęzień wątków.
+1. **Lack of flexibility in model selection:** Different AI models have different specializations. Switching between them requires opening multiple tabs and manually copying conversation context, which is inconvenient and disrupts workflow.
+2. **Conversation linearity:** Exploring alternative ideas or asking follow-up questions within one conversation is difficult. Current solutions force users to "clutter" the main thread or start a new conversation from scratch, leading to context loss. Only a few of them allow creating conversation branches.
 
-`switch-ai` ma na celu rozwiązanie tych problemów poprzez stworzenie jednego, płynnego interfejsu, który umożliwia zarówno dynamiczne przełączanie modeli AI, jak i łatwe tworzenie nowych, inteligentnie zarządzanych wątków konwersacji.
+`switch-ai` aims to solve these problems by creating a single, fluid interface that enables both dynamic AI model switching and easy creation of new, intelligently managed conversation threads.
 
-## Najmniejszy zestaw funkcjonalności
+## Minimum Feature Set
 
-W skład MVP wchodzą następujące funkcje:
+The MVP includes the following features:
 
-1. **Interfejs czatu:** Prosty, czytelny interfejs do prowadzenia rozmów z AI.
-2. **Przełączanie modeli per wiadomość:** Możliwość wyboru modelu językowego dla każdej wysyłanej wiadomości.
-3. **Lista konwersacji:** Wyświetlanie listy historycznych konwersacji zalogowanego użytkownika, z możliwością przełączania się między nimi oraz tworzenia nowej.
-4. **Rozpoczynanie nowego wątku ("branching"):** Przy każdej wiadomości w konwersacji znajduje się opcja stworzenia nowego, oddzielnego wątku, która oferuje dwa tryby:
-   * **Pełna historia:** Nowy wątek jest tworzony jako kopia całej dotychczasowej rozmowy.
-   * **Wątek z podsumowaniem:** Aplikacja automatycznie generuje podsumowanie bieżącej rozmowy i używa go jako kontekstu startowego dla nowego wątku.
-5. **Uwierzytelnianie użytkowników:** Prosta rejestracja i logowanie aby przechowywać historię rozmów przypisaną do użytkownika.
+1. **Chat interface:** Simple, clear interface for conducting conversations with AI.
+2. **Per-message model switching:** Ability to select a language model for each sent message.
+3. **Conversation list:** Display of historical conversations for logged-in users, with the ability to switch between them and create new ones.
+4. **Starting new threads ("branching"):** Each message in a conversation has an option to create a new, separate thread, which offers two modes:
+   * **Full history:** New thread is created as a copy of the entire conversation so far.
+   * **Summary thread:** The application automatically generates a summary of the current conversation and uses it as the starting context for the new thread.
+5. **User authentication:** Simple registration and login to store conversation history assigned to the user.
 
-## Co NIE wchodzi w zakres MVP
+## What is NOT included in MVP
 
-Następujące funkcje są świadomie pomijane w pierwszej wersji, aby skupić się na kluczowej wartości:
+The following features are consciously omitted in the first version to focus on core value:
 
-* Skomplikowana wizualizacja rozmów w formie drzewa
-* Możliwość załączania plików (obrazów, dokumentów, dźwięku)
-* Streaming odpowiedzi asystenta
-* Integracja z wyszukiwarką internetową
-* Udostępnianie i eksportowanie konwersacji
-* Obsługa wielu rozmów jednocześnie w jednym widoku (np. w kartach)
+* Complex conversation visualization in tree form
+* Ability to attach files (images, documents, audio)
+* Assistant response streaming
+* Internet search integration
+* Conversation sharing and exporting
+* Support for multiple conversations simultaneously in one view (e.g., in tabs)
 
-## Kryteria sukcesu
+## Success Criteria
 
-MVP zostanie uznane za sukces, gdy zostaną spełnione następujące kryteria funkcjonalne:
+The MVP will be considered successful when the following functional criteria are met:
 
-1. **Aplikacja jest w pełni funkcjonalna:** Użytkownik może założyć konto, zalogować się i korzystać z aplikacji
-2. **Kluczowe funkcje działają bezbłędnie:**
-   * Użytkownik może płynnie przełączać modele AI w trakcie jednej konwersacji.
-   * Funkcja tworzenia nowych wątków (zarówno przez kopiowanie historii, jak i przez jej podsumowanie) działa niezawodnie.
-   * Zarządzanie konwersacjami (rozpoczynanie nowej, przeglądanie listy, przełączanie, usuwanie) jest działa niezawodnie.
+1. **Application is fully functional:** Users can create an account, log in, and use the application
+2. **Key features work flawlessly:**
+   * Users can seamlessly switch AI models during one conversation.
+   * The function of creating new threads (both by copying history and by summarizing it) works reliably.
+   * Conversation management (starting new, browsing list, switching, deleting) works reliably.
