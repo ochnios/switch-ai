@@ -1,222 +1,222 @@
-# Dokument wymagań produktu (PRD) - switch-ai (MVP)
+# Product Requirements Document (PRD) - switch-ai (MVP)
 
-## 1. Przegląd produktu
+## 1. Product Overview
 
-switch-ai to aplikacja czatu zaprojektowana dla zaawansowanych użytkowników modeli językowych (LLM), którzy wymagają większej elastyczności i kontroli nad swoimi konwersacjami. W wersji MVP (Minimum Viable Product) aplikacja skupia się na rozwiązaniu dwóch kluczowych problemów: braku możliwości płynnego przełączania się między różnymi modelami AI w ramach jednej rozmowy oraz trudności w eksplorowaniu alternatywnych wątków bez utraty kontekstu.
+switch-ai is a chat application designed for advanced Large Language Model (LLM) users who require greater flexibility and control over their conversations. In the MVP (Minimum Viable Product) version, the application focuses on solving two key problems: the inability to seamlessly switch between different AI models within a single conversation, and the difficulty in exploring alternative threads without losing context.
 
-Produkt oferuje pojedynczy, płynny interfejs umożliwiający wybór modelu AI dla każdej wysyłanej wiadomości oraz tworzenie nowych, niezależnych wątków konwersacji (branching) na podstawie pełnej historii lub automatycznie generowanego podsumowania. Aplikacja jest skierowana do "power userów", działa w modelu BYOK (Bring Your Own Key) z integracją z OpenRouter i priorytetyzuje funkcjonalność oraz wydajność przepływu pracy.
+The product offers a single, fluid interface that allows users to select an AI model for each message sent and to create new, independent conversation threads (branching) based on the full history or an automatically generated summary. The application is aimed at "power users," operates on a BYOK (Bring Your Own Key) model with OpenRouter integration, and prioritizes functionality and workflow efficiency.
 
-## 2. Problem użytkownika
+## 2. User Problem
 
-Użytkownicy standardowych interfejsów czatowych z LLM napotykają dwa fundamentalne ograniczenia, które hamują ich produktywność i kreatywność:
+Users of standard chat interfaces with LLMs encounter two fundamental limitations that hinder their productivity and creativity:
 
-1. Brak elastyczności w doborze modeli: Różne modele AI specjalizują się w różnych zadaniach (np. kreatywne pisanie, analiza kodu, rozumowanie logiczne). Użytkownicy, aby skorzystać z tych specjalizacji, są zmuszeni do pracy w wielu oknach przeglądarki, ręcznego kopiowania i wklejania kontekstu konwersacji, co jest czasochłonne, niewygodne i prowadzi do fragmentacji pracy.
-2. Liniowość konwersacji: Obecne interfejsy narzucają liniowy przebieg rozmowy. Eksplorowanie alternatywnych pomysłów, zadawanie pytań pobocznych lub testowanie różnych scenariuszy w ramach tego samego kontekstu jest trudne. Użytkownik musi albo "zaśmiecać" główny wątek, co prowadzi do chaosu, albo rozpoczynać nową konwersację od zera, tracąc całą dotychczasową historię.
+1. Lack of flexibility in model selection: Different AI models specialize in different tasks (e.g., creative writing, code analysis, logical reasoning). To leverage these specializations, users are forced to work in multiple browser windows, manually copying and pasting conversation context, which is time-consuming, inconvenient, and leads to fragmented work.
+2. Linearity of conversations: Current interfaces impose a linear conversation flow. Exploring alternative ideas, asking tangential questions, or testing different scenarios within the same context is difficult. Users must either "clutter" the main thread, leading to chaos, or start a new conversation from scratch, losing all previous history.
 
-switch-ai adresuje te problemy, tworząc zintegrowane środowisko do dynamicznego i kontekstowego zarządzania interakcjami z wieloma modelami AI.
+switch-ai addresses these problems by creating an integrated environment for dynamic and contextual management of interactions with multiple AI models.
 
-## 3. Wymagania funkcjonalne
+## 3. Functional Requirements
 
-* FR-01: Autentykacja użytkownika: System umożliwi użytkownikom tworzenie konta i logowanie się w celu przechowywania i dostępu do historii konwersacji.
-* FR-02: Zarządzanie kluczem API (BYOK): Użytkownicy muszą mieć możliwość bezpiecznego wprowadzenia i zapisania własnego klucza API OpenRouter. Klucz musi być przechowywany w sposób szyfrowany po stronie serwera i nigdy nie być eksponowany po stronie klienta.
-* FR-03: Interfejs czatu: Aplikacja zapewni prosty i czytelny interfejs do prowadzenia konwersacji tekstowych z modelami AI.
-* FR-04: Przełączanie modeli per-wiadomość: Przy każdym polu do wprowadzania wiadomości użytkownik będzie miał możliwość wyboru modelu AI z listy. Lista będzie zawierać najpopularniejsze modele z OpenRouter oraz funkcję wyszukiwania.
-* FR-05: Zarządzanie konwersacjami: Użytkownicy będą mieli dostęp do listy swoich historycznych konwersacji. Aplikacja umożliwi tworzenie nowej konwersacji, przełączanie się między istniejącymi oraz ich trwałe usuwanie.
-* FR-06: Rozgałęzianie konwersacji (Branching): Każda wiadomość (zarówno użytkownika, jak i asystenta) w konwersacji będzie posiadała opcję stworzenia nowej, niezależnej konwersacji w dwóch trybach:
-  * FR-06a: Pełna historia: Nowa konwersacja jest tworzona jako dokładna kopia całej dotychczasowej historii.
-  * FR-06b: Wątek sumaryczny: Aplikacja automatycznie generuje podsumowanie dotychczasowej konwersacji, które staje się pierwszą wiadomością systemową w nowym wątku.
-* FR-07: Automatyczne nazywanie konwersacji: Nowo utworzone konwersacje będą automatycznie otrzymywać tytuł (2-4 słowa) na podstawie treści pierwszej wiadomości. Konwersacje utworzone przez rozgałęzienie będą nazywane według schematu `[Tytuł konwersacji-matki] - gałąź X`.
-* FR-08: Licznik tokenów: W interfejsie użytkownika będzie widoczny szacunkowy licznik tokenów dla bieżącej konwersacji, aktualizowany po każdej nowej wiadomości.
-* FR-09: Zapamiętywanie ostatniego modelu: Aplikacja zapamięta w przeglądarce ostatnio używany model AI i ustawi go jako domyślny dla kolejnej wiadomości lub nowej konwersacji.
-* FR-10: Obsługa błędów API: Błędy zwrócone przez API OpenRouter będą wyświetlane jako wiadomość w oknie czatu, nie blokując interfejsu i pozwalając użytkownikowi na kontynuację pracy.
+* FR-01: User Authentication: The system will allow users to create an account and log in to store and access their conversation history.
+* FR-02: API Key Management (BYOK): Users must be able to securely enter and save their own OpenRouter API key. The key must be stored encrypted on the server side and never exposed on the client side.
+* FR-03: Chat Interface: The application will provide a simple and clear interface for conducting text conversations with AI models.
+* FR-04: Per-message Model Switching: For each message input field, the user will have the option to select an AI model from a list. The list will include the most popular OpenRouter models and a search function.
+* FR-05: Conversation Management: Users will have access to a list of their historical conversations. The application will allow creating new conversations, switching between existing ones, and permanently deleting them.
+* FR-06: Conversation Branching: Each message (both user and assistant) in a conversation will have an option to create a new, independent conversation in two modes:
+  * FR-06a: Full History: A new conversation is created as an exact copy of the entire history up to that point.
+  * FR-06b: Summary Thread: The application automatically generates a summary of the conversation up to that point, which becomes the first system message in the new thread.
+* FR-07: Automatic Conversation Naming: Newly created conversations will automatically receive a title (2-4 words) based on the content of the first message. Branched conversations will be named according to the scheme `[Parent Conversation Title] - branch X`.
+* FR-08: Token Counter: An estimated token counter for the current conversation will be visible in the user interface, updated after each new message.
+* FR-09: Remembering Last Model: The application will remember the last used AI model in the browser's `localStorage` and set it as the default for the next message or a new conversation.
+* FR-10: API Error Handling: Errors returned by the OpenRouter API will be displayed as a message in the chat window, without blocking the interface and allowing the user to continue working.
 
-## 4. Granice produktu
+## 4. Product Scope
 
-### Co wchodzi w zakres MVP:
+### What is in scope for MVP:
 
-* Prosta autentykacja użytkownika (email/hasło).
-* Interfejs czatu z wyborem modelu per wiadomość i listą konwersacji.
-* Integracja wyłącznie z modelami dostępnymi przez OpenRouter.
-* Funkcja rozgałęziania konwersacji (pełna historia i podsumowanie).
-* Automatyczne nazywanie konwersacji.
-* Wyświetlanie licznika tokenów.
-* Trwałe usuwanie konwersacji.
+* Simple user authentication (email/password).
+* Chat interface with per-message model selection and conversation list.
+* Integration exclusively with models available via OpenRouter.
+* Conversation branching functionality (full history and summary).
+* Automatic conversation naming.
+* Displaying token counter.
+* Permanent deletion of conversations.
 
-### Co jest poza zakresem MVP:
+### What is out of scope for MVP:
 
-* Złożona wizualizacja konwersacji w formie drzewa.
-* Możliwość dołączania plików (obrazów, dokumentów, audio).
-* Strumieniowanie odpowiedzi asystenta (response streaming).
-* Integracja z wyszukiwaniem w internecie.
-* Udostępnianie i eksportowanie konwersacji.
-* Obsługa wielu konwersacji jednocześnie w jednym widoku (np. w kartach).
-* Automatyczne skracanie kontekstu konwersacji.
+* Complex conversation visualization in a tree format.
+* Ability to attach files (images, documents, audio).
+* Assistant response streaming.
+* Web search integration.
+* Sharing and exporting conversations.
+* Handling multiple conversations simultaneously in one view (e.g., in tabs).
+* Automatic conversation context shortening.
 
-## 5. Historyjki użytkowników
+## 5. User Stories
 
-### Autentykacja i Konfiguracja
+### Authentication and Configuration
 
 #### ID: US-001
 
-Tytuł: Rejestracja nowego użytkownika
-Opis: Jako nowy użytkownik, chcę móc utworzyć konto za pomocą adresu e-mail i hasła, aby móc zapisywać historię moich konwersacji.
-Kryteria akceptacji:
+Title: New User Registration
+Description: As a new user, I want to be able to create an account using my email address and password so that I can save my conversation history.
+Acceptance Criteria:
 
-1. Formularz rejestracji zawiera pola na adres e-mail i hasło.
-2. System waliduje poprawność formatu adresu e-mail.
-3. Po pomyślnej rejestracji jestem automatycznie zalogowany i przekierowany do głównego widoku aplikacji.
-4. W przypadku nieudanej rejestracji (np. zajęty e-mail) wyświetlany jest czytelny komunikat o błędzie.
+1. The registration form contains fields for email address and password.
+2. The system validates the correctness of the email address format.
+3. Upon successful registration, I am automatically logged in and redirected to the main application view.
+4. In case of unsuccessful registration (e.g., email already taken), a clear error message is displayed.
 
 #### ID: US-002
 
-Tytuł: Logowanie do aplikacji
-Opis: Jako zarejestrowany użytkownik, chcę móc zalogować się na swoje konto, aby uzyskać dostęp do moich zapisanych konwersacji.
-Kryteria akceptacji:
+Title: Application Login
+Description: As a registered user, I want to be able to log into my account to access my saved conversations.
+Acceptance Criteria:
 
-1. Formularz logowania zawiera pola na adres e-mail i hasło.
-2. Po pomyślnym zalogowaniu jestem przekierowany do widoku ostatniej aktywnej konwersacji lub nowej, pustej konwersacji.
-3. W przypadku podania błędnych danych logowania wyświetlany jest odpowiedni komunikat.
+1. The login form contains fields for email address and password.
+2. Upon successful login, I am redirected to the view of the last active conversation or a new, empty conversation.
+3. In case of incorrect login credentials, an appropriate message is displayed.
 
 #### ID: US-003
 
-Tytuł: Zarządzanie kluczem API
-Opis: Jako zalogowany użytkownik, chcę móc wprowadzić i zapisać mój klucz API do OpenRouter, aby aplikacja mogła wykonywać zapytania do modeli AI w moim imieniu.
-Kryteria akceptacji:
+Title: API Key Management
+Description: As a logged-in user, I want to be able to enter and save my OpenRouter API key so that the application can make requests to AI models on my behalf.
+Acceptance Criteria:
 
-1. W ustawieniach konta znajduje się pole do wprowadzenia klucza API.
-2. Po zapisaniu klucz API jest przechowywany na serwerze w formie zaszyfrowanej.
-3. Klucz API nie jest nigdy widoczny w kodzie front-endowym.
-4. Jeśli klucz API jest nieprawidłowy, przy pierwszej próbie użycia go w czacie pojawia się komunikat o błędzie (zgodnie z US-015).
+1. In the account settings, there is a field to enter the API key.
+2. Upon saving, the API key is stored on the server in encrypted form.
+3. The API key is never visible in the front-end code.
+4. If the API key is invalid, an error message appears in the chat on the first attempt to use it (according to US-015).
 
-### Podstawowa Interakcja z Czatrem
+### Basic Chat Interaction
 
 #### ID: US-004
 
-Tytuł: Wysyłanie wiadomości i otrzymywanie odpowiedzi
-Opis: Jako użytkownik, chcę móc wpisać wiadomość w polu tekstowym i wysłać ją, aby otrzymać odpowiedź od domyślnie wybranego modelu AI.
-Kryteria akceptacji:
+Title: Sending Messages and Receiving Responses
+Description: As a user, I want to be able to type a message in the text field and send it to receive a response from the default AI model.
+Acceptance Criteria:
 
-1. W interfejsie czatu widoczne jest pole do wprowadzania tekstu i przycisk "Wyślij".
-2. Po wysłaniu wiadomości, pojawia się ona w oknie konwersacji.
-3. Odpowiedź od modelu AI pojawia się pod wiadomością użytkownika.
-4. Pierwsza wiadomość w nowej konwersacji definiuje jej automatycznie wygenerowany tytuł.
+1. The chat interface shows a text input field and a "Send" button.
+2. After sending a message, it appears in the conversation window.
+3. The AI model's response appears below the user's message.
+4. The first message in a new conversation defines its automatically generated title.
 
 #### ID: US-005
 
-Tytuł: Wybór modelu AI dla konkretnej wiadomości
-Opis: Jako użytkownik, chcę móc wybrać konkretny model AI z listy rozwijanej przed wysłaniem wiadomości, aby wykorzystać jego specjalistyczne zdolności.
-Kryteria akceptacji:
+Title: Selecting an AI Model for a Specific Message
+Description: As a user, I want to be able to select a specific AI model from a dropdown list before sending a message to leverage its specialized capabilities.
+Acceptance Criteria:
 
-1. Obok pola do wprowadzania tekstu znajduje się element UI (np. lista rozwijana) z listą dostępnych modeli.
-2. Lista zawiera popularne modele i pole wyszukiwania do filtrowania listy.
-3. Wybrany model jest używany do przetworzenia tylko tej jednej, nadchodzącej wiadomości.
-4. Wybór modelu dla jednej wiadomości nie zmienia domyślnego modelu dla kolejnych zapytań, chyba że był to pierwszy wybór (zgodnie z US-006).
+1. Next to the text input field, there is a UI element (e.g., a dropdown list) with a list of available models.
+2. The list includes popular models and a search field to filter the list.
+3. The selected model is used to process only that single, upcoming message.
+4. Selecting a model for one message does not change the default model for subsequent queries, unless it was the first selection (according to US-006).
 
 #### ID: US-006
 
-Tytuł: Zapamiętywanie ostatnio używanego modelu
-Opis: Jako użytkownik, chcę, aby aplikacja pamiętała ostatni model, którego użyłem, i ustawiała go jako domyślny dla kolejnych wiadomości, aby zminimalizować liczbę kliknięć.
-Kryteria akceptacji:
+Title: Remembering the Last Used Model
+Description: As a user, I want the application to remember the last model I used and set it as the default for subsequent messages to minimize clicks.
+Acceptance Criteria:
 
-1. Po wybraniu modelu z listy i wysłaniu wiadomości, ten model staje się domyślnie wybrany na liście dla następnego zapytania w tej samej i w każdej nowej konwersacji.
-2. Informacja o ostatnio używanym modelu jest zapisywana w `localStorage` przeglądarki.
-3. Po ponownym otwarciu aplikacji, ostatnio używany model jest poprawnie ustawiony jako domyślny.
+1. After selecting a model from the list and sending a message, that model becomes the default selection for the next query in the same and any new conversation.
+2. Information about the last used model is saved in the browser's `localStorage`.
+3. Upon reopening the application, the last used model is correctly set as default.
 
-### Zarządzanie Konwersacjami
+### Conversation Management
 
 #### ID: US-007
 
-Tytuł: Rozpoczynanie nowej konwersacji
-Opis: Jako użytkownik, chcę móc w łatwy sposób rozpocząć nową, pustą konwersację, aby zająć się nowym zadaniem.
-Kryteria akceptacji:
+Title: Starting a New Conversation
+Description: As a user, I want to be able to easily start a new, empty conversation to address a new task.
+Acceptance Criteria:
 
-1. W interfejsie znajduje się wyraźnie oznaczony przycisk "Nowa konwersacja".
-2. Kliknięcie przycisku czyści bieżący widok czatu i tworzy nowy wpis na liście konwersacji (z tymczasowym tytułem do czasu wysłania pierwszej wiadomości).
-3. Nowa konwersacja staje się aktywną konwersacją.
+1. The interface contains a clearly marked "New Conversation" button.
+2. Clicking the button clears the current chat view and creates a new entry in the conversation list (with a temporary title until the first message is sent).
+3. The new conversation becomes the active conversation.
 
 #### ID: US-008
 
-Tytuł: Przeglądanie i przełączanie konwersacji
-Opis: Jako użytkownik, chcę widzieć listę moich poprzednich konwersacji i móc się między nimi przełączać, aby kontynuować pracę.
-Kryteria akceptacji:
+Title: Browsing and Switching Conversations
+Description: As a user, I want to see a list of my previous conversations and be able to switch between them to continue my work.
+Acceptance Criteria:
 
-1. W panelu bocznym widoczna jest lista wszystkich moich konwersacji, posortowana od najnowszej do najstarszej.
-2. Każda pozycja na liście wyświetla automatycznie wygenerowany tytuł konwersacji.
-3. Kliknięcie na tytuł konwersacji na liście ładuje jej pełną historię do głównego okna czatu.
+1. In the sidebar, a list of all my conversations is visible, sorted from newest to oldest.
+2. Each item in the list displays the automatically generated conversation title.
+3. Clicking on a conversation title in the list loads its full history into the main chat window.
 
 #### ID: US-009
 
-Tytuł: Usuwanie konwersacji
-Opis: Jako użytkownik, chcę móc trwale usunąć konwersację, której już nie potrzebuję, aby utrzymać porządek na liście.
-Kryteria akceptacji:
+Title: Deleting Conversations
+Description: As a user, I want to be able to permanently delete conversations I no longer need to keep the list tidy.
+Acceptance Criteria:
 
-1. Każda konwersacja na liście ma opcję "Usuń".
-2. Kliknięcie "Usuń" powoduje wyświetlenie modala z prośbą o potwierdzenie operacji ("Czy na pewno chcesz trwale usunąć tę konwersację?").
-3. Po potwierdzeniu, konwersacja jest trwale usuwana z bazy danych i znika z listy.
-4. Anulowanie operacji zamyka modal bez usuwania konwersacji.
+1. Each conversation in the list has a "Delete" option.
+2. Clicking "Delete" displays a modal asking for confirmation ("Are you sure you want to permanently delete this conversation?").
+3. Upon confirmation, the conversation is permanently deleted from the database and disappears from the list.
+4. Canceling the operation closes the modal without deleting the conversation.
 
-### Rozgałęzianie (Branching)
+### Branching
 
 #### ID: US-010
 
-Tytuł: Tworzenie gałęzi z pełną historią
-Opis: Jako użytkownik, chcę móc utworzyć odgałęzienie z wybranej wiadomości, które kopiuje całą dotychczasową historię, aby móc eksplorować alternatywny scenariusz bez modyfikowania oryginalnego wątku.
-Kryteria akceptacji:
+Title: Creating a Branch with Full History
+Description: As a user, I want to be able to create a branch from a selected message that copies the entire history up to that point, so I can explore an alternative scenario without modifying the original thread.
+Acceptance Criteria:
 
-1. Przy każdej wiadomości w konwersacji widoczna jest ikona "Rozgałęzienie".
-2. Po kliknięciu ikony pojawia się opcja "Utwórz gałąź z pełną historią".
-3. Wybranie tej opcji tworzy nową, niezależną konwersację w bazie danych, zawierającą kopię wszystkich wiadomości aż do punktu rozgałęzienia.
-4. Nowa konwersacja otrzymuje nazwę w formacie `[Tytuł konwersacji-matki] - gałąź X`.
-5. Użytkownik jest automatycznie przełączany do widoku nowo utworzonej konwersacji.
+1. Next to each message in the conversation, a "Branch" icon is visible.
+2. Clicking the icon reveals the "Create branch with full history" option.
+3. Selecting this option creates a new, independent conversation in the database, containing a copy of all messages up to the branching point.
+4. The new conversation is named in the format `[Parent Conversation Title] - branch X`.
+5. The user is automatically switched to the view of the newly created conversation.
 
 #### ID: US-011
 
-Tytuł: Tworzenie gałęzi z podsumowaniem
-Opis: Jako użytkownik, chcę móc utworzyć odgałęzienie, które rozpoczyna się od automatycznego podsumowania dotychczasowej rozmowy, aby szybko rozpocząć nowy, powiązany temat z przekazaniem kluczowego kontekstu.
-Kryteria akceptacji:
+Title: Creating a Branch with Summary
+Description: As a user, I want to be able to create a branch that starts with an automatic summary of the previous conversation, to quickly begin a new, related topic with key context transferred.
+Acceptance Criteria:
 
-1. Przy każdej wiadomości w konwersacji widoczna jest ikona "Rozgałęzienie".
-2. Po kliknięciu ikony pojawia się opcja "Utwórz gałąź z podsumowaniem".
-3. Wybranie tej opcji powoduje wywołanie modelu AI w celu wygenerowania podsumowania konwersacji do punktu rozgałęzienia.
-4. Tworzona jest nowa, niezależna konwersacja, której pierwszą wiadomością jest wygenerowane podsumowanie.
-5. Nowa konwersacja otrzymuje nazwę w formacie `[Tytuł konwersacji-matki] - gałąź X`.
-6. Użytkownik jest automatycznie przełączany do widoku nowo utworzonej konwersacji.
+1. Next to each message in the conversation, a "Branch" icon is visible.
+2. Clicking the icon reveals the "Create branch with summary" option.
+3. Selecting this option triggers the AI model to generate a summary of the conversation up to the branching point.
+4. A new, independent conversation is created, with the generated summary as its first message.
+5. The new conversation is named in the format `[Parent Conversation Title] - branch X`.
+6. The user is automatically switched to the view of the newly created conversation.
 
-### Dodatkowe Funkcjonalności (UX/Error Handling)
+### Additional Functionalities (UX/Error Handling)
 
 #### ID: US-012
 
-Tytuł: Wyświetlanie licznika tokenów
-Opis: Jako użytkownik prowadzący długą konwersację, chcę widzieć szacunkową liczbę tokenów, aby być świadomym wielkości kontekstu wysyłanego do API i unikać przekroczenia limitu.
-Kryteria akceptacji:
+Title: Displaying Token Counter
+Description: As a user conducting a long conversation, I want to see the estimated number of tokens to be aware of the context size sent to the API and avoid exceeding the limit.
+Acceptance Criteria:
 
-1. W interfejsie czatu, w widocznym miejscu, wyświetlana jest liczba reprezentująca szacunkową ilość tokenów w bieżącej konwersacji.
-2. Licznik aktualizuje się po dodaniu każdej nowej wiadomości (zarówno użytkownika, jak i asystenta).
-3. Projekt UI dla licznika jest czytelny i nieinwazyjny.
+1. In the chat interface, in a visible location, the number representing the estimated amount of tokens in the current conversation is displayed.
+2. The counter updates after each new message is added (both user and assistant).
+3. The UI design for the counter is readable and non-intrusive.
 
 #### ID: US-013
 
-Tytuł: Obsługa błędów API
-Opis: Jako użytkownik, w przypadku problemu z komunikacją z API (np. nieprawidłowy klucz, błąd serwera modelu), chcę otrzymać informację zwrotną w formie wiadomości w czacie, aby móc kontynuować pracę bez blokady całego interfejsu.
-Kryteria akceptacji:
+Title: API Error Handling
+Description: As a user, in case of a problem with API communication (e.g., invalid key, model server error), I want to receive feedback in the form of a message in the chat, so I can continue working without the entire interface being blocked.
+Acceptance Criteria:
 
-1. Gdy zapytanie do API OpenRouter zwróci błąd, w oknie czatu pojawia się specjalna wiadomość o błędzie (np. "Wystąpił błąd: \[treść błędu API]").
-2. Interfejs aplikacji pozostaje w pełni funkcjonalny, pozwalając na wysłanie kolejnej wiadomości lub zmianę modelu.
-3. Wiadomość o błędzie jest wyraźnie odróżnialna wizualnie od standardowych odpowiedzi AI.
+1. When an OpenRouter API request returns an error, a special error message appears in the chat window (e.g., "An error occurred: \[API error content]").
+2. The application interface remains fully functional, allowing for sending another message or changing the model.
+3. The error message is visually distinguishable from standard AI responses.
 
-## 6. Metryki sukcesu
+## 6. Success Metrics
 
-Sukces wersji MVP będzie mierzony za pomocą kombinacji kryteriów funkcjonalnych i wskaźników adopcji kluczowych funkcji.
+The success of the MVP version will be measured through a combination of functional criteria and adoption indicators for key features.
 
-### Kryteria funkcjonalne:
+### Functional Criteria:
 
-1. Stabilność aplikacji: Aplikacja jest w 100% sprawna. Użytkownicy mogą bez przeszkód tworzyć konta, logować się i korzystać ze wszystkich podstawowych funkcji.
-2. Niezawodność kluczowych funkcji:
-   * Przełączanie modeli AI dla poszczególnych wiadomości działa bezbłędnie.
-   * Tworzenie nowych wątków (zarówno przez kopiowanie historii, jak i przez jej podsumowanie) działa niezawodnie.
-   * Zarządzanie konwersacjami (tworzenie, przeglądanie, przełączanie, usuwanie) działa zgodnie z oczekiwaniami.
+1. Application stability: The application is 100% functional. Users can create accounts, log in, and use all basic functions without hindrance.
+2. Reliability of key features:
+   * Switching AI models for individual messages works flawlessly.
+   * Creating new threads (both by copying history and by summarizing it) works reliably.
+   * Conversation management (creating, browsing, switching, deleting) works as expected.
 
-### Mierzalne wskaźniki sukcesu (KPIs):
+### Measurable Success Indicators (KPIs):
 
-1. Wskaźnik adopcji funkcji rozgałęziania (Branching): Co najmniej 15% aktywnych użytkowników skorzystało z funkcji rozgałęziania (dowolnego typu) przynajmniej raz w ciągu pierwszego tygodnia od rozpoczęcia pomiarów.
-2. Wskaźnik adopcji funkcji przełączania modeli: Co najmniej 20% aktywnych użytkowników użyło co najmniej 3 różnych modeli AI w ciągu pierwszego tygodnia od rozpoczęcia pomiarów.
+1. Branching feature adoption rate: At least 15% of active users have used the branching feature (any type) at least once within the first week of measurement.
+2. Model switching feature adoption rate: At least 20% of active users have used at least 3 different AI models within the first week of measurement.
