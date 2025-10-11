@@ -1,53 +1,79 @@
-# 10x Astro Starter
+# switch-ai
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.0.1-informational.svg)
+
+## Table of Contents
+
+* [Project Description](#project-description)
+* [Tech Stack](#tech-stack)
+* [Getting Started Locally](#getting-started-locally)
+* [Available Scripts](#available-scripts)
+* [Project Structure](#project-structure)
+* [Project Scope](#project-scope)
+* [Project Status](#project-status)
+* [License](#license)
+
+## Project Description
+
+**switch-ai** is a chat application designed for advanced Large Language Model (LLM) users who require greater flexibility and control over their conversations. The application focuses on solving two key problems: the inability to seamlessly switch between different AI models within a single conversation, and the difficulty in exploring alternative threads without losing context.
+
+The product offers a single, fluid interface that allows users to select an AI model for each message sent and to create new, independent conversation threads (branching). The application is aimed at "power users," operates on a BYOK (Bring Your Own Key) model with OpenRouter integration, and prioritizes functionality and workflow efficiency.
 
 ## Tech Stack
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+**Frontend:**
 
-## Prerequisites
+* Astro 5
+* React 19
+* TypeScript 5
+* Tailwind CSS 4
+* Shadcn/ui
 
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+**Backend:**
 
-## Getting Started
+* Supabase (PostgreSQL) for data storage and authentication
+* AI integration via OpenRouter.ai API
 
-1. Clone the repository:
+**CI/CD / Deployment:**
 
-```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
+* GitHub Actions for continuous integration and deployment
+* DigitalOcean for hosting using Docker images
 
-2. Install dependencies:
+## Getting Started Locally
 
-```bash
-npm install
-```
+1. **Clone the repository:**
+   ```sh
+   git clone https://github.com/ochnios/switch-ai.git
+   cd switch-ai
+   ```
 
-3. Run the development server:
+2. **Ensure you are using the correct Node version:**
+   This project uses the Node version specified in the `.nvmrc` file. Currently it's **22.14.0**.
+   ```sh
+   nvm use
+   ```
 
-```bash
-npm run dev
-```
+3. **Install dependencies:**
+   ```sh
+   npm install
+   ```
 
-4. Build for production:
-
-```bash
-npm run build
-```
+4. **Run the development server:**
+   ```sh
+   npm run dev
+   ```
+   Open <http://localhost:3000> in your browser to view the application.
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+* **`npm run dev`**: Starts the development server.
+* **`npm run build`**: Builds the project for production.
+* **`npm run preview`**: Previews the production build locally.
+* **`npm run astro`**: Runs Astro CLI commands.
+* **`npm run lint`**: Runs ESLint to check for linting issues.
+* **`npm run lint:fix`**: Automatically fixes linting issues.
+* **`npm run format`**: Formats the code using Prettier.
 
 ## Project Structure
 
@@ -62,33 +88,34 @@ npm run build
 ├── public/         # Public assets
 ```
 
-## AI Development Support
+## Project Scope
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+The project is currently focused on delivering a Minimum Viable Product (MVP) with the core functionalities.
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
+### In Scope for MVP:
 
-### Cursor IDE
+* **User Authentication**: Simple user authentication (email/password).
+* **API Key Management (BYOK)**: Securely save an OpenRouter API key.
+* **Chat Interface**: A clean interface for text conversations.
+* **Per-message Model Switching**: Select an AI model for each message from a searchable list.
+* **Conversation Management**: Create, switch between, and delete conversations.
+* **Conversation Branching**: Create new conversation threads from any message, either with the full history or from a generated summary.
+* **Automatic Conversation Naming**: New conversations are automatically named based on the first message.
+* **Token Counter**: Display an estimated token count for the current conversation.
 
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
+### Out of Scope for MVP:
 
-### GitHub Copilot
+* Complex conversation visualization (e.g., a tree format).
+* File attachments (images, documents).
+* Assistant response streaming.
+* Web search integration.
+* Sharing and exporting conversations.
+* Handling multiple conversations simultaneously in one view.
 
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
+## Project Status
 
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+The project is currently in the MVP stage and under active development.
 
 ## License
 
-MIT
+This project is licensed under the MIT License.
