@@ -1,0 +1,78 @@
+# Database schema description - switch-ai (MVP)
+
+## 1. Table list with columns, data types, and constraints
+
+### Custom types
+
+#### Enum: `message_role`
+
+Defines a set of allowed values for the role assigned to a message. Values: 'user', 'assistant', 'system'.
+
+### Table: `api_keys`
+
+Stores encrypted OpenRouter API keys belonging to users.
+
+* id (UUID, PRIMARY KEY, DEFAULT gen\_random\_uuid())
+* user\_id (UUID, FOREIGN KEY -> auth.users.id, UNIQUE, NOT NULL, ON DELETE CASCADE)
+* encrypted\_key (TEXT, NOT NULL)
+* created\_at (TIMESTAMPTZ, NOT NULL, DEFAULT now())
+
+### Table: `conversations`
+
+Stores metadata for each conversation, including its title and relationships with other conversations (branching).
+
+* id (UUID, PRIMARY KEY, DEFAULT gen\_random\_uuid())
+* user\_id (UUID, FOREIGN KEY -> auth.users.id, NOT NULL, ON DELETE CASCADE)
+* parent\_conversation\_id (UUID, FOREIGN KEY -> conversations.id, ON DELETE SET NULL)
+* title (TEXT)
+* branch\_count (INTEGER, NOT NULL, DEFAULT 0)
+* created\_at (TIMESTAMPTZ, NOT NULL, DEFAULT now())
+
+### Table: `messages`
+
+Stores the content of each individual message within a conversation.
+
+* id (UUID, PRIMARY KEY, DEFAULT gen\_random\_uuid())
+* conversation\_id (UUID, FOREIGN KEY -> conversations.id, NOT NULL, ON DELETE CASCADE)
+* role (message\_role, NOT NULL)
+* content (TEXT, NOT NULL)
+* model\_name (TEXT)
+* prompt\_tokens (INTEGER)
+* completion\_tokens (INTEGER)
+* created\_at (TIMESTAMPTZ, NOT NULL, DEFAULT now())
+
+## 2. Table relationships
+
+* auth.users - api\_keys (1-1): Each user can have exactly one API key.
+* auth.users - conversations (1-n): A user can create many conversations, but each conversation belongs to one user.
+* conversations - messages (1-n): A conversation consists of many messages, but each message belongs to one conversation.
+* conversations - conversations (1-n, self-referencing): A conversation can be a parent to many other conversations (branches), which is implemented via the `parent_conversation_id` foreign key.
+
+## 3. Indexes
+
+### idx\_conversations\_user\_id
+
+Table: `conversations`
+Column: `user_id`
+Purpose: Accelerate queries filtering conversations for the logged-in user.
+
+### idx\_messages\_conversation\_id\_created\_at
+
+Table: `messages`
+Columns: `conversation_id`, `created_at` (DESC)
+Purpose: Optimize the most common query, which is fetching the full, sorted message history for a single conversation.
+
+## 4. PostgreSQL Policies (Row-Level Security)
+
+Row-Level Security (RLS) is enabled for the `api_keys`, `conversations`, and `messages` tables to ensure strict data isolation between users.
+
+* Policy for `api_keys`: Users can create, read, update, and delete only their own API key.
+* Policy for `conversations`: Users can create, read, update, and delete only their own conversations.
+* Policy for `messages`: Users can manage messages (all CRUD operations) only if they own the conversation to which these messages belong.
+
+## 5. Additional notes or explanations regarding design decisions
+
+* User management: The `users` table is not part of this schema, as it is provided and managed by the Supabase Auth system. All relationships are built based on the `auth.users` table.
+* Encryption: The `encrypted_key` column in the `api_keys` table stores an encrypted value. The encryption and decryption process is performed on the backend, e.g., using the `pgsodium` extension in Supabase, so that the key in plaintext is never exposed to unauthorized access.
+* Data integrity on deletion: Deleting a user cascades to deleting their API key and all their conversations and messages. Deleting a parent conversation does not delete its branches; instead, it breaks the link by setting `parent_conversation_id` to `NULL`.
+* Branch counter: The `branch_count` column in the `conversations` table serves as a simple and efficient counter that eliminates the need for additional aggregate queries when creating a new branch and generating its name.
