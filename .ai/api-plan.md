@@ -302,9 +302,13 @@ Manages conversation branching.
 ## 4. Validation and Business Logic
 
 * **Payload Validation**: All incoming request bodies and query parameters will be validated for correct data types, presence of required fields, and format.
-  * `api_keys`: `apiKey` must be a non-empty string.
-  * `messages`: `content` and `model` must be non-empty strings.
-  * `branching`: `type` must be either `full` or `summary`.
+  * `api_keys`:
+    * `apiKey` must be a non-empty string.
+  * `messages`:
+    * `content` must be a non-empty string containing 1-50000 characters.
+    * `model` must be a non-empty string containing 1-255 characters.
+  * `branching`:
+    * `type` must be either `full` or `summary`.
 * **Business Logic**:
   * **API Key Encryption**: The `PUT /user/api-key` endpoint will use a secure, server-side mechanism (e.g., `pgsodium` in Supabase) to encrypt the key before storing it.
   * **Automatic Naming**: When the first message is posted to a conversation via `POST /conversations/{id}/messages`, the API will trigger a call to an LLM to generate a 2-4 word title for the conversation and update the conversation record.
