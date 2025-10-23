@@ -81,6 +81,24 @@ export interface SuccessResponseDto {
 }
 
 /**
+ * Error field detail for validation errors
+ */
+export interface ErrorFieldDto {
+  field: string;
+  message: string;
+}
+
+/**
+ * Standard error response
+ * Used by all endpoints to return consistent error messages
+ */
+export interface ErrorResponseDto {
+  statusCode: number;
+  message: string;
+  errors?: ErrorFieldDto[];
+}
+
+/**
  * Response indicating whether an API key exists for the user
  * @endpoint GET /api/user/api-key
  */

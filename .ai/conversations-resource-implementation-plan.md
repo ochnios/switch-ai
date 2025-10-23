@@ -45,7 +45,7 @@ Retrieves a paginated list of conversations for the currently authenticated user
     }
   }
   ```
-* **Error**: Returns a standard error response object.
+* **Error**: Returns a standard error response object (`ErrorResponseDto`) as defined in the API Design Rules.
 
 ### 5. Data Flow
 
@@ -77,8 +77,8 @@ Retrieves a paginated list of conversations for the currently authenticated user
 
 ### 9. Implementation Steps
 
-1. Create the Zod schema for pagination query parameters in a new file `src/lib/schemas/conversation.schema.ts`.
-2. Create the `ConversationService` class in `src/lib/conversation.service.ts` with a `getConversations` method.
+1. Create the Zod schema for pagination query parameters in `src/lib/schemas/conversation.schema.ts`.
+2. Create the `ConversationService` class in `src/lib/services/conversation.service.ts` with a `getConversations` method.
 3. Implement the Astro endpoint at `src/pages/api/conversations/index.ts` to handle the `GET` request.
 4. In the endpoint, import and use the Zod schema for validation.
 5. Instantiate `ConversationService` with `Astro.locals.supabase` and call the service method.
@@ -115,7 +115,7 @@ Creates a new conversation from a user's first message. This is a complex operat
 ### 4. Response Details
 
 * **Success (201 Created)**: Returns a `ConversationWithMessagesDto` object containing the new conversation and the initial two messages.
-* **Error**: Returns a standard error response object.
+* **Error**: Returns a standard error response object (`ErrorResponseDto`) as defined in the API Design Rules.
 
 ### 5. Data Flow
 
@@ -156,7 +156,7 @@ Creates a new conversation from a user's first message. This is a complex operat
 ### 9. Implementation Steps
 
 1. Add a Zod schema for `CreateConversationFromMessageCommand` to `src/lib/schemas/conversation.schema.ts`.
-2. Create an `OpenRouterService` in `src/lib/openrouter.service.ts` to handle communication with the OpenRouter API.
+2. Create an `OpenRouterService` in `src/lib/services/openrouter.service.ts` to handle communication with the OpenRouter API.
 3. Implement a helper function or service for secure API key decryption.
 4. Implement a helper function to generate conversation titles.
 5. Add the `createConversation` method to the `ConversationService`. This method will orchestrate the data flow described above.
@@ -185,7 +185,7 @@ Retrieves a single conversation by its unique ID.
 ### 4. Response Details
 
 * **Success (200 OK)**: Returns a `ConversationDto` object.
-* **Error**: Returns a standard error response object.
+* **Error**: Returns a standard error response object (`ErrorResponseDto`) as defined in the API Design Rules.
 
 ### 5. Data Flow
 
@@ -246,7 +246,7 @@ Permanently deletes a conversation and all of its associated messages.
 ### 4. Response Details
 
 * **Success (204 No Content)**: Returns an empty response.
-* **Error**: Returns a standard error response object.
+* **Error**: Returns a standard error response object (`ErrorResponseDto`) as defined in the API Design Rules.
 
 ### 5. Data Flow
 

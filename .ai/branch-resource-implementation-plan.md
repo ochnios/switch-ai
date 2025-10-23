@@ -45,7 +45,7 @@ This endpoint creates a new conversation (a "branch") based on the history of an
     "created_at": "timestamp"
   }
   ```
-* **Error**: Returns a standard error response object.
+* **Error**: Returns a standard error response object (`ErrorResponseDto`) as defined in the API Design Rules.
 
 ### 5. Data Flow
 
@@ -92,7 +92,7 @@ This endpoint creates a new conversation (a "branch") based on the history of an
 
 1. Create a new file for the API route: `src/pages/api/messages/[id]/branch.ts`.
 2. Implement the `POST` handler within this file.
-3. Add Zod schemas for validating the path parameter (`id`) and the request body (`CreateBranchCommand`).
+3. Add Zod schemas for validating the path parameter (`id`) and the request body (`CreateBranchCommand`) in `src/lib/schemas/branch.schema.ts`.
 4. Create a new service file: `src/lib/services/conversation.service.ts`.
 5. Implement the `createBranchFromMessage` method in `ConversationService` to contain all the business logic described in the Data Flow section. This method will utilize a Supabase edge function or RPC call to handle the database transaction.
 6. The `ConversationService` will depend on `ApiKeyService` and `OpenRouterService` for the summary generation logic.

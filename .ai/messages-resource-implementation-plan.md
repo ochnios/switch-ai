@@ -49,7 +49,7 @@ This endpoint retrieves a paginated list of messages for a given conversation. T
     }
   }
   ```
-* **Error**: Returns a standard error response object.
+* **Error**: Returns a standard error response object (`ErrorResponseDto`) as defined in the API Design Rules.
 
 ### 5. Data Flow
 
@@ -80,7 +80,7 @@ This endpoint retrieves a paginated list of messages for a given conversation. T
 
 1. Create a new file `src/pages/api/conversations/[id]/messages.ts`.
 2. Implement the `GET` handler in the new file.
-3. Add Zod schemas to validate the `id` path parameter and the `page`/`pageSize` query parameters.
+3. Add Zod schemas to validate the `id` path parameter and the `page`/`pageSize` query parameters in `src/lib/schemas/messages.schema.ts`.
 4. Create the `MessageService` in `src/lib/services/message.service.ts`.
 5. Implement the `getMessages` method in `MessageService` to handle the database query, including pagination logic and a preliminary check for conversation ownership.
 6. Connect the `GET` handler to the `MessageService`.
@@ -121,7 +121,7 @@ This endpoint creates a new user message, sends the conversation context to the 
     { "id": "asst-msg-uuid", "role": "assistant", "content": "...", "model_name": "...", "created_at": "..." }
   ]
   ```
-* **Error**: Returns a standard error response object.
+* **Error**: Returns a standard error response object (`ErrorResponseDto`) as defined in the API Design Rules.
 
 ### 5. Data Flow
 
@@ -131,12 +131,14 @@ This endpoint creates a new user message, sends the conversation context to the 
 4. **`MessageService.sendMessage()`**:
    a. Verifies that the conversation belongs to the user.
    b. Calls `ApiKeyService.getDecryptedApiKey(userId)` to fetch and decrypt the user's OpenRouter API key. Fails if no key exists.
-   c. Fetches the existing messages in the conversation to provide context for the AI model.
-   d. Saves the new user message to the database.
+   c. Saves the new user message to the database.
+   d. Fetches the existing messages in the conversation to provide context for the AI model.
    e. Calls `OpenRouterService.createChatCompletion()` with the decrypted key, model, and message history.
    f. `OpenRouterService` handles the API call to `https://openrouter.ai/api/v1/chat/completions`.
-   g. `MessageService` receives the response, parses it, and saves the new assistant message to the database, including token usage stats.
-   h. The service returns the two newly created message DTOs.
+   g. `MessageService` receives the response from OpenRouter.
+   h. If the API call was successful, it parses the response and saves the new assistant message to the database, including token usage stats.
+   i. If the API call fails, it saves an assistant message containing the error information. The `role` will be `assistant`, but the `content` will describe the failure.
+   j. The service returns the two newly created message DTOs (the user's original message and the assistant's success or error message).
 5. The Astro handler returns the array of `MessageDto` with a `201 Created` status.
 
 ### 6. Security Considerations
@@ -162,7 +164,7 @@ This endpoint creates a new user message, sends the conversation context to the 
 ### 9. Implementation Steps
 
 1. Implement the `POST` handler in `src/pages/api/conversations/[id]/messages.ts`.
-2. Add a Zod schema for the `SendMessageCommand` request body.
+2. Add a Zod schema for the `SendMessageCommand` request body to `src/lib/schemas/messages.schema.ts`.
 3. Create `ApiKeyService` (`src/lib/services/api-key.service.ts`) to manage fetching and decrypting the API key. (Requires a robust encryption/decryption utility).
 4. Create `OpenRouterService` (`src/lib/services/open-router.service.ts`) to encapsulate the fetch call to the OpenRouter API.
 5. Implement the `sendMessage` method in `MessageService` to orchestrate the data flow.

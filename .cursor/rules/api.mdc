@@ -1,0 +1,57 @@
+---
+alwaysApply: false
+---
+# API Design Rules
+
+## Directory Structure
+
+- Place all business logic and service classes in `src/lib/services/`
+- Place all Zod validation schemas in `src/lib/schemas/`
+
+## URL Structure
+
+- All API endpoints must be at the root of `/api/` path
+- Do not nest endpoints under `/api/user/`
+- Examples: `/api/api-key`, `/api/conversations`
+
+## Authentication & Authorization
+
+- All endpoints require authentication via middleware
+- User identity must be obtained from `Astro.locals.supabase` session
+- Services must perform explicit ownership checks before operations
+- Supabase RLS policies provide additional security layer
+
+## Validation
+
+- All request bodies, query parameters, and path parameters must be validated using Zod schemas
+- Path parameters (especially UUIDs) must be validated for correct format
+- Validation errors must return `400 Bad Request` with `ErrorResponseDto`
+
+## Service Layer Pattern
+
+- Business logic must be implemented in service classes
+- Services must be instantiated with Supabase client from `Astro.locals`
+- Complex multi-step operations must use database transactions for atomicity
+
+## HTTP Status Codes
+
+- `200 OK` - successful GET operations
+- `201 Created` - successful POST operations that create resources
+- `204 No Content` - successful DELETE operations (empty response body)
+- `400 Bad Request` - validation errors or invalid requests
+- `401 Unauthorized` - authentication failures
+- `402 Payment Required` - external API payment/billing issues
+- `404 Not Found` - resource not found or unauthorized access
+- `500 Internal Server Error` - unexpected server errors
+
+## Error Response
+
+- All error responses must use `ErrorResponseDto` (defined in `src/types.ts`)
+- Include `statusCode`, `message`, and optional `errors` array for validation failures
+- Example: `{ statusCode: 400, message: "Validation failed", errors: [{ field: "apiKey", message: "Required" }] }`
+
+## Astro-Specific
+
+- All API routes must include `export const prerender = false;`
+- Use dynamic routes like `[id].ts` for path parameters
+- Access Supabase client via `Astro.locals.supabase`, not direct import
