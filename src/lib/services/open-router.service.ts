@@ -37,6 +37,8 @@ export class OpenRouterService {
    * @returns The assistant's response with token usage
    */
   async createChatCompletion(apiKey: string, model: string, messages: ChatMessage[]): Promise<ChatCompletionResponse> {
+    // TODO key should be taken by open router service itself
+
     logger.warn("Using mock OpenRouter implementation", {
       model,
       messageCount: messages.length,

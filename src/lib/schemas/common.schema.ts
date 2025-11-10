@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { config } from "../config";
+
 /**
  * Schema for validating UUID path parameters
  */
@@ -21,13 +23,13 @@ export const paginationQuerySchema = z.object({
   pageSize: z
     .string()
     .optional()
-    .default("50")
+    .default(config.pagination.defaultPageSize.toString())
     .transform((val) => parseInt(val, 10))
     .pipe(
       z
         .number()
         .int()
         .positive({ message: "Page size must be a positive integer" })
-        .max(100, { message: "Page size cannot exceed 100" })
+        .max(config.pagination.maxPageSize, { message: `Page size cannot exceed ${config.pagination.maxPageSize}` })
     ),
 });
