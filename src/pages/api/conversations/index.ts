@@ -2,14 +2,71 @@ import type { APIRoute } from "astro";
 
 import { DEFAULT_USER_ID } from "../../../db/supabase.client";
 import { Logger } from "../../../lib/logger";
+import { paginationQuerySchema } from "../../../lib/schemas/common.schema";
 import { sendMessageCommandSchema } from "../../../lib/schemas/messages.schema";
 import { ConversationService } from "../../../lib/services/conversation.service";
 import { MessageService } from "../../../lib/services/message.service";
-import type { ConversationWithMessagesDto, ErrorResponseDto } from "../../../types";
+import type { ConversationWithMessagesDto, ErrorResponseDto, PaginatedConversationsDto } from "../../../types";
 
 export const prerender = false;
 
+const getLogger = new Logger("GET /api/conversations");
 const postLogger = new Logger("POST /api/conversations");
+
+/**
+ * GET /api/conversations
+ * Retrieves a paginated list of conversations for the current user
+ */
+export const GET: APIRoute = async (context) => {
+  const supabase = context.locals.supabase;
+
+  try {
+    // Parse and validate query parameters
+    const url = new URL(context.request.url);
+    const queryParams = {
+      page: url.searchParams.get("page") || undefined,
+      pageSize: url.searchParams.get("pageSize") || undefined,
+    };
+
+    const queryValidation = paginationQuerySchema.safeParse(queryParams);
+
+    if (!queryValidation.success) {
+      const errorResponse: ErrorResponseDto = {
+        statusCode: 400,
+        message: "Invalid query parameters",
+        errors: queryValidation.error.errors.map((err) => ({
+          field: err.path.join("."),
+          message: err.message,
+        })),
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const { page, pageSize } = queryValidation.data;
+
+    // Fetch conversations
+    const conversationService = new ConversationService(supabase);
+    const result: PaginatedConversationsDto = await conversationService.getConversations(page, pageSize);
+
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    getLogger.error(error instanceof Error ? error : new Error(String(error)));
+    const errorResponse: ErrorResponseDto = {
+      statusCode: 500,
+      message: "Failed to retrieve conversations",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};
 
 /**
  * POST /api/conversations
