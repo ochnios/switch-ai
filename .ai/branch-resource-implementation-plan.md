@@ -4,7 +4,7 @@ Manages the creation of new conversations by branching from existing messages.
 
 ***
 
-## Endpoint `/api/messages/{id}/branch` - Create a Branch from a Message
+## Endpoint `/api/conversations/[id]/messages/{id}/branch` - Create a Branch from a Message
 
 ### 1. Overview
 
@@ -13,7 +13,7 @@ This endpoint creates a new conversation (a "branch") based on the history of an
 ### 2. Request Details
 
 * **HTTP Method**: `POST`
-* **URL Structure**: `/api/messages/[id]/branch`
+* **URL Structure**: `/api/conversations/[id]/messages/[id]/branch`
 * **Parameters**:
   * **Path (required)**: `id` (string, UUID) - The unique identifier for the message to branch from.
 * **Request Body**: `CreateBranchCommand`
@@ -49,7 +49,7 @@ This endpoint creates a new conversation (a "branch") based on the history of an
 
 ### 5. Data Flow
 
-1. The Astro `POST` handler receives the request at `/api/messages/[id]/branch`.
+1. The Astro `POST` handler receives the request at `/api/conversations/[id]/messages/[id]/branch`.
 2. It authenticates the user using the Supabase client from `context.locals`.
 3. It validates the `id` path parameter (must be a UUID) and the request body (must conform to `CreateBranchCommand`) using a Zod schema.
 4. It calls the `ConversationService.createBranchFromMessage()` method, passing the `userId`, source message `id`, and branch `type`.
@@ -90,7 +90,7 @@ This endpoint creates a new conversation (a "branch") based on the history of an
 
 ### 9. Implementation Steps
 
-1. Create a new file for the API route: `src/pages/api/messages/[id]/branch.ts`.
+1. Create a new file for the API route: `src/pages/api/conversations/[id]/messages/[id]/branch.ts`.
 2. Implement the `POST` handler within this file.
 3. Add Zod schemas for validating the path parameter (`id`) and the request body (`CreateBranchCommand`) in `src/lib/schemas/branch.schema.ts`.
 4. Create a new service file: `src/lib/services/conversation.service.ts`.

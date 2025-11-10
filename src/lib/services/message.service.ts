@@ -21,33 +21,14 @@ export class MessageService {
 
   /**
    * Retrieves paginated messages for a specific conversation
-   * Ensures the conversation belongs to the authenticated user
+   * Access control is handled by RLS policies
    *
-   * @param userId - The authenticated user's ID
    * @param conversationId - The conversation ID
    * @param page - The page number (1-indexed)
    * @param pageSize - Number of messages per page
    * @returns Paginated list of messages
-   * @throws Error if conversation doesn't exist or doesn't belong to user
    */
-  async getMessages(
-    userId: string,
-    conversationId: string,
-    page: number,
-    pageSize: number
-  ): Promise<PaginatedMessagesDto> {
-    // First, verify the conversation exists and belongs to the user
-    const { data: conversation, error: conversationError } = await this.supabase
-      .from("conversations")
-      .select("id")
-      .eq("id", conversationId)
-      .eq("user_id", userId)
-      .single();
-
-    if (conversationError || !conversation) {
-      throw new Error("Conversation not found");
-    }
-
+  async getMessages(conversationId: string, page: number, pageSize: number): Promise<PaginatedMessagesDto> {
     // Calculate offset for pagination
     const offset = (page - 1) * pageSize;
 
@@ -97,15 +78,15 @@ export class MessageService {
   /**
    * Sends a user message and gets AI response
    * Creates user message, fetches conversation history, calls AI, saves assistant response
+   * Access control is handled by RLS policies
    *
-   * @param userId - The user's ID
    * @param conversationId - The conversation ID
    * @param content - The message content
    * @param model - The AI model to use
    * @returns Array containing the user message and assistant response
-   * @throws Error if conversation doesn't exist, API key missing, or AI call fails
+   * @throws Error if API key missing or AI call fails
    */
-  async sendMessage(userId: string, conversationId: string, content: string, model: string): Promise<MessageDto[]> {
+  async sendMessage(conversationId: string, content: string, model: string): Promise<MessageDto[]> {
     try {
       // Get API key
       const apiKey = this.apiKeyService.getApiKey();
@@ -123,7 +104,6 @@ export class MessageService {
 
       if (userMessageError || !userMessage) {
         logger.error(new Error("Failed to save user message"), {
-          userId,
           conversationId,
           error: userMessageError,
         });
@@ -139,7 +119,6 @@ export class MessageService {
 
       if (historyError) {
         logger.error(new Error("Failed to fetch conversation history"), {
-          userId,
           conversationId,
           error: historyError,
         });
@@ -171,7 +150,6 @@ export class MessageService {
 
       if (assistantMessageError || !assistantMessage) {
         logger.error(new Error("Failed to save assistant message"), {
-          userId,
           conversationId,
           error: assistantMessageError,
         });
@@ -201,7 +179,6 @@ export class MessageService {
       ];
     } catch (error) {
       logger.error(error instanceof Error ? error : new Error(String(error)), {
-        userId,
         conversationId,
       });
       throw error;

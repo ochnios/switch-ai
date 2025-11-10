@@ -264,7 +264,7 @@ Manages conversation branching.
 #### Create a Branch from a Message
 
 * **Method**: `POST`
-* **Path**: `/messages/{id}/branch`
+* **Path**: `/conversations/{id}/messages/{id}/branch`
 * **Description**: Creates a new conversation (a "branch") from an existing message. The new conversation's history depends on the `type`.
 * **Request Payload**:
   ```json
@@ -312,6 +312,6 @@ Manages conversation branching.
 * **Business Logic**:
   * **API Key Encryption**: The `PUT /user/api-key` endpoint will use a secure, server-side mechanism (e.g., `pgsodium` in Supabase) to encrypt the key before storing it.
   * **Automatic Naming**: When the first message is posted to a conversation via `POST /conversations/{id}/messages`, the API will trigger a call to an LLM to generate a 2-4 word title for the conversation and update the conversation record.
-  * **Branch Naming**: The `POST /messages/{id}/branch` endpoint will fetch the parent conversation's title and `branch_count`, increment the count, and construct the new title in the format `[Parent Title] - branch X`.
+  * **Branch Naming**: The `POST /conversations/{id}/messages/{id}/branch` endpoint will fetch the parent conversation's title and `branch_count`, increment the count, and construct the new title in the format `[Parent Title] - branch X`.
   * **Summary Branching**: If `type` is `summary`, the branching endpoint will first fetch the conversation history up to the source message, send it to an LLM to generate a summary, and then create the new conversation with that summary as the initial system message.
   * **OpenRouter Proxying**: The `POST /conversations/{id}/messages` endpoint orchestrates fetching conversation history, calling the OpenRouter API with the correct payload and user key, and persisting the results. It will also handle mapping OpenRouter API errors to appropriate HTTP status codes.

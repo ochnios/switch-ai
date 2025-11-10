@@ -11,6 +11,21 @@ export class ConversationService {
   constructor(private supabase: SupabaseClient) {}
 
   /**
+   * Generates a title for a conversation based on the first message
+   * TODO: Implement AI-powered title generation using OpenRouterService
+   * This should analyze the conversation content and generate a meaningful, concise title
+   *
+   * @param firstMessage - The first message content
+   * @returns Generated title for the conversation
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async generateTitle(firstMessage: string): Promise<string> {
+    // TODO: Use OpenRouterService to generate a meaningful title based on the first message
+    // For now, return a placeholder title
+    return "Generated title";
+  }
+
+  /**
    * Creates a new conversation for a user
    *
    * @param userId - The user's ID
@@ -34,28 +49,5 @@ export class ConversationService {
     }
 
     return data;
-  }
-
-  /**
-   * Verifies that a conversation exists and belongs to the user
-   *
-   * @param userId - The user's ID
-   * @param conversationId - The conversation ID
-   * @returns True if conversation exists and belongs to user
-   * @throws Error if conversation doesn't exist or doesn't belong to user
-   */
-  async verifyConversationOwnership(userId: string, conversationId: string): Promise<boolean> {
-    const { data, error } = await this.supabase
-      .from("conversations")
-      .select("id")
-      .eq("id", conversationId)
-      .eq("user_id", userId)
-      .single();
-
-    if (error || !data) {
-      throw new Error("Conversation not found");
-    }
-
-    return true;
   }
 }
