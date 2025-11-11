@@ -2,7 +2,7 @@
 
 ## 1. UI Structure Overview
 
-switch-ai is a chat application for LLM power-users, designed around a fixed, two-column layout: **Sidebar (conversation list + actions)** and **Main Panel (active chat + input field + model selector)**. Global state is managed via Zustand (activeConversationId, conversationsList, modelsList, lastUsedModel). The interface supports per-message model switching, branching (full / summary), simple pagination (first 50 conversations and first 50 oldest messages for the active chat), BYOK API key onboarding, and non-blocking API error messages. The UI clearly separates the "New Chat" logic (activeConversationId === null) from the view of an existing conversation.
+switch-ai is a chat application for LLM power-users, designed around a fixed, two-column layout: **Sidebar (conversation list + actions)** and **Main Panel (active chat + input field + model selector)**. Global state is managed via Zustand (activeConversationId, conversationsList, modelsList, lastUsedModel). The interface supports per-message model switching, inline branching via dropdown menu on each message (full / summary options), simple pagination (first 50 conversations and first 50 oldest messages for the active chat), BYOK API key onboarding, and non-blocking API error messages. The UI clearly separates the "New Chat" logic (activeConversationId === null) from the view of an existing conversation.
 
 ***
 
@@ -43,8 +43,9 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 * **Path**: `/app/conversations/:id` or active "New Chat" when `activeConversationId === null`
 * **Main Goal**: conducting conversation, sending messages with per-message model selection, reviewing history, branching from each message item.
 * **Key Information**: message list (GET .../messages — first 50 oldest), model\_name under each response, token counter (prompt+completion from the last assistant message), loading indicator (skeleton) when awaiting response, non-blocking alert with API error content (US-013).
-* **Key Components**: MessageList (role=log), MessageItem (user/assistant/error), Branch action (icon + menu), ModelBadge (under response), Composer (input, model selector, send button, token counter).
-* **UX / Accessibility / Security**: aria-live region for new messages, disabled input + button while waiting (but UI does not block other actions), distinct colors/roles for error messages, readable contrasts, do not hold API key in JS runtime.
+* **Key Components**: MessageList (role=log), MessageItem (user/assistant/error), Branch action (icon + dropdown menu with two options: "Create branch with full history" and "Create branch with summary"), ModelBadge (under response), Composer (input, model selector, send button, token counter).
+* **Branching UX**: Each MessageItem displays a branch icon (e.g., git-branch icon). Clicking it reveals a dropdown menu with two options: (1) "Create branch with full history" — copies all messages up to this point; (2) "Create branch with summary" — generates a summary and starts a new thread. Selecting an option immediately calls `POST /conversations/{id}/messages/{id}/branch` with the chosen type (`full` or `summary`). On success, the UI switches `activeConversationId` to the new branch and navigates to it. On error, a non-blocking alert is shown.
+* **UX / Accessibility / Security**: aria-live region for new messages, disabled input + button while waiting (but UI does not block other actions), distinct colors/roles for error messages, readable contrasts, do not hold API key in JS runtime. Branch dropdown menu is accessible via keyboard (aria-haspopup, aria-expanded), with clear labels for each option.
 
 ***
 
@@ -60,21 +61,11 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 
 ### View: Settings / API Key Onboarding
 
-* **Path**: `/app/settings` (modal or page)
+* **Path**: `/app/settings` (modal)
 * **Main Goal**: BYOK management — entering, removing, checking existence (GET /user/api-key; PUT /user/api-key; DELETE /user/api-key).
 * **Key Information**: API key input, validation status (existence check), BYOK instructions, save button, info about server-side encryption.
 * **Key Components**: secure input (mask), status badge, explainers (why we don't see the key).
 * **UX / Accessibility / Security**: key never shown, input clears after sending; tips on account security; validation errors displayed as alerts.
-
-***
-
-### View: Branching Flow Modal / Popover
-
-* **Path**: overlay in Chat Panel (not a new page)
-* **Main Goal**: select branch type (full / summary), confirm, call `POST /conversations/{id}/messages/{id}/branch`.
-* **Key Information**: brief description of the difference between full and summary, "Create branch (full history)" and "Create branch (summary)" buttons.
-* **Key Components**: accessible dialog, loading state, success navigation (switch activeConversationId to the new one).
-* **UX / Accessibility / Security**: focus trap in dialog, aria-describedby with description of consequences, endpoint error handler (500 → non-blocking alert).
 
 ***
 
@@ -100,7 +91,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 5. User types content → presses "Send" → UI sends `POST /conversations` (new conversation flow) with payload {content, model}.
 6. Backend: creates conversation, saves user message, calls OpenRouter, saves assistant message, generates title (2-4 words) → returns conversation + messages.
 7. UI: sets `activeConversationId` to the newly created id, refreshes conversations list (GET /conversations), renders messages; displays `model_name` under the response and updates token counter.
-8. User can click the Branch icon on any message → select `full` or `summary` → UI calls `POST /conversations/{id}/messages/{id}/branch` → on success, sets activeConversationId to the new branch and fetches its messages.
+8. User can click the Branch icon on any message → dropdown menu appears with two options: "Create branch with full history" or "Create branch with summary" → user selects one → UI immediately calls `POST /conversations/{id}/messages/{id}/branch` with the chosen type → on success, sets activeConversationId to the new branch and fetches its messages.
 
 ***
 
@@ -108,7 +99,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 
 * **Global Header**: hamburger (mobile), profile/settings (opens settings modal/page), API key status (icon).
 * **Sidebar (persistent)**: conversation list (select), "New Conversation" button (sticky), filter/search options (optional). Clicking an item → set `activeConversationId` and fetch messages.
-* **Main Panel**: dynamic; if `activeConversationId === null` → "New Chat", otherwise render history. Branching triggered inline on the message item.
+* **Main Panel**: dynamic; if `activeConversationId === null` → "New Chat", otherwise render history. Branching triggered inline on each MessageItem via branch icon + dropdown menu (no separate modal needed).
 * **Mobile Navigation**: hamburger toggles Sidebar as a Sheet (Shadcn/ui). All actions available via keyboard and screen reader.
 * **API Pipelines**: mutating operations (POST/PUT/DELETE) cause local state updates in Zustand and potential re-fetches (conversations list, messages) according to decisions in the plan.
 
@@ -118,10 +109,10 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 
 1. **SidebarList** — conversation list with two-step delete; keyboard navigation; lazy highlight active.
 2. **ChatPanel / MessageList** — rendering messages with role significance; aria-live for new messages; handling message error card.
-3. **MessageItem** — contains actions: branch (menu), copy, show model badge; accessibility for action buttons.
-4. **Composer** — textarea, Combobox model selector (searchable), Send button, Token counter, keyboard shortcuts.
-5. **ModelCombobox** — preloaded modelsList from /api/models; searchable; updates lastUsedModel in localStorage on send.
-6. **BranchDialog** — accessible dialog with `full`/`summary` selection, loading state, error handling.
+3. **MessageItem** — contains actions: branch icon with dropdown menu (two options: full history / summary), copy, show model badge; accessibility for action buttons.
+4. **BranchDropdown** — accessible dropdown menu (DropdownMenu from Shadcn/ui) with two options: "Create branch with full history" and "Create branch with summary". Clicking an option triggers `POST /conversations/{id}/messages/{id}/branch` with the selected type, shows loading state on the button, handles errors with non-blocking alert.
+5. **Composer** — textarea, Combobox model selector (searchable), Send button, Token counter, keyboard shortcuts.
+6. **ModelCombobox** — preloaded modelsList from /api/models; searchable; updates lastUsedModel in localStorage on send.
 7. **APIKeyOnboarding** — modal/section with secure input and explanatory text; calls PUT/GET/DELETE /user/api-key.
 8. **NonBlockingAlert** — inline alert component for API errors (maps error payload to friendly message).
 9. **GlobalState (Zustand store)** — activeConversationId, conversationsList, messagesCache (per conversation), modelsList, lastUsedModel, uiFlags (loading states).
@@ -140,7 +131,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 * `DELETE /conversations/{id}` → deletion; UI: two-step confirmation, then remove from Zustand.
 * `GET /conversations/{id}/messages?page=1&pageSize=50` → **MessageList** (fetch after activeConversationId change).
 * `POST /conversations/{id}/messages` → send subsequent message; UI: adds user message, shows loading, after results adds assistant message and updates token counter. Errors (402, 502) mapped to inline error message.
-* `POST /conversations/{id}/messages/{id}/branch` → branching; UI: dialog → POST → on success switch activeConversationId to new branch.
+* `POST /conversations/{id}/messages/{id}/branch` → branching; UI: branch icon dropdown menu on MessageItem → user selects option (full/summary) → POST with type → on success switch activeConversationId to new branch.
 
 ***
 
@@ -154,7 +145,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 * **US-007 (New Conversation)** → "New Conversation" CTA in Sidebar; activeConversationId === null; POST /conversations after first send.
 * **US-008 (Browsing / Switching)** → SidebarList select → set activeConversationId → GET messages.
 * **US-009 (Deleting)** → two-step delete action in Sidebar (icon → confirm) → DELETE /conversations/{id}.
-* **US-010 / US-011 (Branch Full / Summary)** → BranchDialog on MessageItem → POST /.../branch (type full/summary) → switch to new conversation on success.
+* **US-010 / US-011 (Branch Full / Summary)** → BranchDropdown menu on MessageItem (accessible via branch icon) with two immediate action options: "Create branch with full history" and "Create branch with summary" → POST /.../branch (type full/summary) → switch to new conversation on success.
 * **US-012 (Token Counter)** → Token counter calculated from the last assistant message (prompt\_tokens + completion\_tokens) and displayed next to Composer.
 * **US-013 (API Error Handling)** → NonBlockingAlert + inline MessageItem error with API error content; UI remains interactive.
 
@@ -182,20 +173,20 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
    * UI: information that only the first 50 are visible (old MVP compromise), "Load more" option marked; clearly inform the user.
 6. **Race Conditions**: rapid successive sends → Composer disabled while awaiting response (as per decision). Alternative: allow concurrent messages but queue them — outside MVP.
 7. **Branch Summary Generation Fail (500)**
-   * UI: error alert in dialog, leave user in original conversation, log error.
+   * UI: non-blocking error alert appears after attempting to branch, leave user in original conversation, log error.
 
 ***
 
 ## 10. API Plan Compliance (Brief Confirmation)
 
-The UI architecture directly maps to the API plan: every mutation and fetch has a corresponding endpoint; branching, creating conversations from the first message, and per-message model selection required by the backend are reflected in the Composer and BranchDialog; JWT authentication and BYOK are assumed by Settings/Onboarding. Local state and fetch policies (once on load for models; fetch conversations once + refresh on create/delete; fetch messages on activeConversationId change) have been accounted for.
+The UI architecture directly maps to the API plan: every mutation and fetch has a corresponding endpoint; branching, creating conversations from the first message, and per-message model selection required by the backend are reflected in the Composer and BranchDropdown (inline on MessageItem); JWT authentication and BYOK are assumed by Settings/Onboarding. Local state and fetch policies (once on load for models; fetch conversations once + refresh on create/delete; fetch messages on activeConversationId change) have been accounted for.
 
 ***
 
 ## 11. User Pain Points and How the UI Alleviates Them
 
 1. **Switching models is tedious** → Combobox model selector with search + remembering lastUsedModel.
-2. **Losing context when exploring alternatives** → branching (full/summary) allows for independent threads without losing history.
+2. **Losing context when exploring alternatives** → quick branching via dropdown menu on each message (full/summary options) allows for independent threads without losing history; no modal interruptions.
 3. **Unclear API errors** → inline, non-blocking alerts with suggested action (settings / retry).
 4. **Too many windows** → one, consistent view with the ability to copy/open branch in the same UI.
 5. **Mobility** → sidebar as Sheet, discreet CTAs, keyboard friendly.
