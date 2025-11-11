@@ -1,4 +1,6 @@
+import type { SupabaseClient } from "../../db/supabase.client";
 import { Logger } from "../logger";
+import { ApiKeyService } from "./api-key.service";
 
 const logger = new Logger("OpenRouterService");
 
@@ -24,24 +26,34 @@ export interface ChatCompletionResponse {
 
 /**
  * Service for interacting with OpenRouter API
- * Currently returns mock responses for development
+ * Handles API key retrieval and AI model interactions
  */
 export class OpenRouterService {
+  private apiKeyService: ApiKeyService;
+
+  constructor(private supabase: SupabaseClient) {
+    this.apiKeyService = new ApiKeyService(supabase);
+  }
+
   /**
    * Creates a chat completion using OpenRouter API
+   * Retrieves the user's API key and makes the request
    * Mock implementation that returns predefined response
    *
-   * @param apiKey - The OpenRouter API key
+   * @param userId - The user's ID
    * @param model - The model to use
    * @param messages - The conversation history
    * @returns The assistant's response with token usage
+   * @throws Error if API key is not found or OpenRouter API call fails
    */
-  async createChatCompletion(apiKey: string, model: string, messages: ChatMessage[]): Promise<ChatCompletionResponse> {
-    // TODO key should be taken by open router service itself
+  async createChatCompletion(userId: string, model: string, messages: ChatMessage[]): Promise<ChatCompletionResponse> {
+    // Retrieve and decrypt the user's API key
+    const apiKey = await this.apiKeyService.getApiKey(userId);
 
     logger.warn("Using mock OpenRouter implementation", {
       model,
       messageCount: messages.length,
+      hasApiKey: !!apiKey,
     });
 
     // Mock response - simulating AI response

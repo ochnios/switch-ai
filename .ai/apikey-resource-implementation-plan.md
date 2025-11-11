@@ -42,7 +42,7 @@ Creates a new API key or updates an existing one for the authenticated user. The
 2. The middleware verifies that the user is authenticated via their Supabase session.
 3. The request body is parsed and validated against a Zod schema for the `UpsertApiKeyCommand`.
 4. The handler calls the `ApiKeyService.upsertApiKey` method, passing the `userId` from the session and the `apiKey` from the request body.
-5. The `ApiKeyService` calls a Supabase RPC function to encrypt the key and perform an `upsert` operation on the `api_keys` table.
+5. The `ApiKeyService` encrypts the key using AES-256-GCM encryption (via `encrypt()` function) and performs an `upsert` operation on the `api_keys` table storing the encrypted key in the `encrypted_key` column.
 6. A `SuccessResponseDto` is constructed and returned to the client with a `200 OK` status.
 
 ### 6. Security Considerations
@@ -50,7 +50,7 @@ Creates a new API key or updates an existing one for the authenticated user. The
 * **Authentication**: Access is restricted to authenticated users. The user's identity is derived from the server-side session.
 * **Authorization**: Supabase RLS policies ensure a user can only write to their own record in the `api_keys` table.
 * **Input Validation**: A Zod schema validates the `apiKey` format, ensuring it is a non-empty string with the expected prefix (`sk-or-`).
-* **Data Protection**: The API key is immediately encrypted within a secure database function and is never stored in plaintext.
+* **Data Protection**: The API key is immediately encrypted using AES-256-GCM with a unique salt and IV per encryption, and is never stored in plaintext.
 
 ### 7. Error Handling
 
@@ -64,9 +64,9 @@ The performance impact is minimal. The endpoint performs a single, indexed `upse
 
 ### 9. Implementation Steps
 
-1. Create a file `src/lib/schemas/api-key.schemas.ts` and define a Zod schema for `UpsertApiKeyCommand`.
-2. Create the service file `src/lib/services/apiKey.service.ts`.
-3. Implement the `upsertApiKey` method in `ApiKeyService`. This method will interact with the Supabase client to call the necessary RPC for encryption and data storage.
+1. Create a file `src/lib/schemas/api-key.schema.ts` and define a Zod schema for `UpsertApiKeyCommand`.
+2. Create the service file `src/lib/services/api-key.service.ts`.
+3. Implement the `upsertApiKey` method in `ApiKeyService`. This method will encrypt the key using the `encrypt()` function from `src/lib/crypto.ts` and store it in the database using Supabase `.upsert()`.
 4. Create the Astro API route file at `src/pages/api/api-key.ts`.
 5. Implement the `PUT` handler within this file. The handler will manage request validation and call the service.
 6. Ensure `export const prerender = false;` is set in the route file to enable dynamic rendering.
@@ -187,3 +187,16 @@ High performance. The operation is a simple, indexed `delete`.
 1. Implement the `deleteApiKey` method in `src/lib/services/apiKey.service.ts`.
 2. Add a `DELETE` handler in the `src/pages/api/api-key.ts` file.
 3. The handler will call the `deleteApiKey` service method and return a `204 No Content` response.
+
+***
+
+## Implementation Notes
+
+### Encryption Approach
+
+Instead of using a database RPC function, encryption is handled in the application layer using Node.js `crypto` module:
+
+* **Algorithm**: AES-256-GCM (authenticated encryption)
+* **Key Derivation**: scrypt with unique salt per encryption
+* **Storage**: Base64-encoded string containing `[salt][iv][authTag][encryptedData]`
+* **Environment Variable**: `ENCRYPTION_KEY` must be set

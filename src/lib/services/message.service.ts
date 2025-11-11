@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { MessageDto, PaginatedMessagesDto } from "../../types";
 import { Logger } from "../logger";
-import { ApiKeyService } from "./api-key.service";
 import type { ChatMessage } from "./open-router.service";
 import { OpenRouterService } from "./open-router.service";
 
@@ -11,12 +10,10 @@ const logger = new Logger("MessageService");
  * Service for managing messages in conversations
  */
 export class MessageService {
-  private apiKeyService: ApiKeyService;
   private openRouterService: OpenRouterService;
 
   constructor(private supabase: SupabaseClient) {
-    this.apiKeyService = new ApiKeyService();
-    this.openRouterService = new OpenRouterService();
+    this.openRouterService = new OpenRouterService(supabase);
   }
 
   /**
@@ -83,14 +80,12 @@ export class MessageService {
    * @param conversationId - The conversation ID
    * @param content - The message content
    * @param model - The AI model to use
+   * @param userId - The user's ID
    * @returns Array containing the user message and assistant response
    * @throws Error if API key missing or AI call fails
    */
-  async sendMessage(conversationId: string, content: string, model: string): Promise<MessageDto[]> {
+  async sendMessage(conversationId: string, content: string, model: string, userId: string): Promise<MessageDto[]> {
     try {
-      // Get API key
-      const apiKey = this.apiKeyService.getApiKey();
-
       // Save user message
       const { data: userMessage, error: userMessageError } = await this.supabase
         .from("messages")
@@ -132,7 +127,7 @@ export class MessageService {
       }));
 
       // Call OpenRouter API
-      const aiResponse = await this.openRouterService.createChatCompletion(apiKey, model, chatMessages);
+      const aiResponse = await this.openRouterService.createChatCompletion(userId, model, chatMessages);
 
       // Save assistant message
       const { data: assistantMessage, error: assistantMessageError } = await this.supabase

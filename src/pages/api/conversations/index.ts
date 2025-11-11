@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 
 import { DEFAULT_USER_ID } from "../../../db/supabase.client";
+import { OpenRouterError } from "../../../lib/errors";
 import { Logger } from "../../../lib/logger";
 import { paginationQuerySchema } from "../../../lib/schemas/common.schema";
 import { sendMessageCommandSchema } from "../../../lib/schemas/messages.schema";
@@ -122,7 +123,7 @@ export const POST: APIRoute = async (context) => {
     // Send first message and get AI response
     try {
       const messageService = new MessageService(supabase);
-      const messages = await messageService.sendMessage(conversationId, content, model);
+      const messages = await messageService.sendMessage(conversationId, content, model, userId);
 
       // Fetch the created conversation to return full details
       const { data: conversation, error: conversationError } = await supabase
@@ -153,11 +154,11 @@ export const POST: APIRoute = async (context) => {
         headers: { "Content-Type": "application/json" },
       });
     } catch (error) {
-      // Handle API key errors
-      if (error instanceof Error && error.message === "OpenRouter API key not configured") {
+      // Handle OpenRouter service errors (API key issues, AI model errors)
+      if (error instanceof OpenRouterError) {
         const errorResponse: ErrorResponseDto = {
           statusCode: 400,
-          message: "OpenRouter API key not configured",
+          message: error.message,
         };
         return new Response(JSON.stringify(errorResponse), {
           status: 400,
