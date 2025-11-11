@@ -1,8 +1,15 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
+import { ConversationSidebar } from "@/components/ConversationSidebar";
+import AppLayout from "@/layouts/AppLayout.astro";
 ---
 
-<Layout>
-  <Welcome />
-</Layout>
+<AppLayout title="switch-ai - Chat">
+  <ConversationSidebar slot="sidebar" client:only="react" />
+
+  <div slot="main" class="flex h-full items-center justify-center p-8">
+    <div class="text-center">
+      <h1 class="text-2xl font-semibold text-foreground">Welcome to switch-ai</h1>
+      <p class="mt-2 text-sm text-muted-foreground">Select a conversation from the sidebar or start a new one</p>
+    </div>
+  </div>
+</AppLayout>
