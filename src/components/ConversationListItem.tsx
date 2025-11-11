@@ -69,6 +69,9 @@ export function ConversationListItem({ conversation, isActive, onSelect, onDelet
     }
   };
 
+  // Get display title with fallback for untitled conversations
+  const displayTitle = conversation.title?.trim() || "Untitled Conversation";
+
   return (
     <div
       className={cn(
@@ -87,10 +90,17 @@ export function ConversationListItem({ conversation, isActive, onSelect, onDelet
         )}
         onClick={handleClick}
         aria-selected={isActive}
-        aria-label={`Select conversation: ${conversation.title}`}
+        aria-label={`Select conversation: ${displayTitle}`}
       >
         <div className="flex flex-1 flex-col overflow-hidden">
-          <span className="truncate text-sm font-medium text-sidebar-foreground">{conversation.title}</span>
+          <span
+            className={cn(
+              "truncate text-sm font-medium",
+              conversation.title?.trim() ? "text-sidebar-foreground" : "text-muted-foreground italic"
+            )}
+          >
+            {displayTitle}
+          </span>
           <span className="text-xs text-muted-foreground">{formatDate(conversation.created_at)}</span>
         </div>
       </Button>

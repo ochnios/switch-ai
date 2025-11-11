@@ -2,17 +2,25 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/useAppStore";
 
+interface NewConversationButtonProps {
+  /**
+   * Optional callback for when navigation occurs (used to close mobile sheet)
+   */
+  onNavigate?: () => void;
+}
+
 /**
  * NewConversationButton - Creates a new conversation
  *
  * Clicking sets activeConversationId to null and navigates to /app/new.
  * Button is disabled when activeConversationId is already null.
  */
-export function NewConversationButton() {
+export function NewConversationButton({ onNavigate }: NewConversationButtonProps) {
   const { activeConversationId, setActiveConversation } = useAppStore();
 
   const handleClick = () => {
     setActiveConversation(null);
+    onNavigate?.();
   };
 
   const isDisabled = activeConversationId === null;

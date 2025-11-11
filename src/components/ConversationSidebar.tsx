@@ -1,8 +1,16 @@
 import { useEffect } from "react";
 import { useAppStore } from "@/stores/useAppStore";
+import { useUrlSync } from "./hooks/useUrlSync";
 import { SettingsButton } from "./SettingsButton";
 import { NewConversationButton } from "./NewConversationButton";
 import { ConversationList } from "./ConversationList";
+
+interface ConversationSidebarProps {
+  /**
+   * Optional callback for when navigation occurs (used to close mobile sheet)
+   */
+  onNavigate?: () => void;
+}
 
 /**
  * ConversationSidebar - Main sidebar container component
@@ -12,24 +20,29 @@ import { ConversationList } from "./ConversationList";
  * - Manages loading/error states
  * - Contains settings button, new conversation button, and conversation list
  */
-export function ConversationSidebar() {
+export function ConversationSidebar({ onNavigate }: ConversationSidebarProps) {
   const {
     conversationsList,
     activeConversationId,
     uiFlags,
     conversationsError,
+    initializeApp,
     fetchConversations,
     setActiveConversation,
     deleteConversation,
   } = useAppStore();
 
-  // Fetch conversations on mount
+  // Keep store synced with current URL
+  useUrlSync();
+
+  // Initialize app on mount (fetch API key, models, conversations)
   useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+    initializeApp();
+  }, [initializeApp]);
 
   const handleSelectConversation = (id: string) => {
     setActiveConversation(id);
+    onNavigate?.();
   };
 
   const handleDeleteConversation = async (id: string) => {
@@ -39,10 +52,10 @@ export function ConversationSidebar() {
   return (
     <div className="flex h-full flex-col gap-2 p-3">
       {/* Settings Button at the top */}
-      <SettingsButton />
+      <SettingsButton onNavigate={onNavigate} />
 
       {/* New Conversation Button */}
-      <NewConversationButton />
+      <NewConversationButton onNavigate={onNavigate} />
 
       {/* Conversation List */}
       <ConversationList
@@ -50,6 +63,7 @@ export function ConversationSidebar() {
         activeConversationId={activeConversationId}
         onSelect={handleSelectConversation}
         onDelete={handleDeleteConversation}
+        onRetry={fetchConversations}
         isLoading={uiFlags.isLoadingConversations}
         isError={!!conversationsError}
       />

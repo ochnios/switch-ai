@@ -3,13 +3,13 @@ import type { ConversationDto } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ConversationListItem } from "./ConversationListItem";
-import { useAppStore } from "@/stores/useAppStore";
 
 interface ConversationListProps {
   conversations: ConversationDto[];
   activeConversationId: string | null;
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
+  onRetry: () => void;
   isLoading: boolean;
   isError: boolean;
 }
@@ -28,11 +28,10 @@ export function ConversationList({
   activeConversationId,
   onSelect,
   onDelete,
+  onRetry,
   isLoading,
   isError,
 }: ConversationListProps) {
-  const { fetchConversations } = useAppStore();
-
   // Loading state - show skeletons
   if (isLoading) {
     return (
@@ -61,7 +60,7 @@ export function ConversationList({
           <p className="text-sm font-medium text-foreground">Failed to load conversations</p>
           <p className="text-xs text-muted-foreground">Please try again</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchConversations}>
+        <Button variant="outline" size="sm" onClick={onRetry}>
           Try Again
         </Button>
       </div>

@@ -1,6 +1,7 @@
 ---
 import Layout from "./Layout.astro";
 import { Toaster } from "@/components/ui/sonner";
+import { Header } from "@/components/Header";
 
 interface Props {
   title?: string;
@@ -10,20 +11,27 @@ const { title = "switch-ai" } = Astro.props;
 ---
 
 <Layout title={title}>
-  <div class="flex h-screen w-full overflow-hidden">
-    <!-- Sidebar -->
-    <aside
-      class="flex w-64 flex-col border-r border-sidebar-border bg-sidebar"
-      role="navigation"
-      aria-label="Conversation list"
-    >
-      <slot name="sidebar" />
-    </aside>
+  <div class="flex h-screen w-full flex-col overflow-hidden">
+    <!-- Global Header -->
+    <Header client:only="react" transition:persist />
 
-    <!-- Main Content Area -->
-    <main class="flex flex-1 flex-col overflow-hidden" role="main">
-      <slot name="main" />
-    </main>
+    <!-- Two-column layout -->
+    <div class="flex flex-1 overflow-hidden">
+      <!-- Sidebar - Hidden on mobile, visible on desktop -->
+      <aside
+        class="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar md:flex"
+        role="navigation"
+        aria-label="Conversation list"
+        transition:persist="sidebar"
+      >
+        <slot name="sidebar" />
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="flex flex-1 flex-col overflow-hidden" role="main">
+        <slot name="main" />
+      </main>
+    </div>
   </div>
 
   <!-- Toast notifications -->
