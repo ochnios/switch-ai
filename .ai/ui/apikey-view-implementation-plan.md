@@ -6,7 +6,7 @@ The purpose of this view is to enable the logged-in user to manage their own Ope
 
 ## 2. View Routing
 
-The view will be available as a modal component, likely triggered from the "Settings" link in the application navigation. The URL path `/app/settings` can be used for deep linking, which automatically opens the modal. The modal component will be rendered on top of the currently active view (e.g., the chat view).
+The view will be available as a modal component, triggered from the "Settings" button located at the top of the sidebar. The URL path `/app/settings` can be used for deep linking, which automatically opens the modal. The modal component will be rendered on top of the currently active view (e.g., the chat view).
 
 ## 3. Component Structure
 
@@ -125,12 +125,12 @@ It is recommended to create a custom hook `useApiKeyManager` that encapsulates a
 
 The component will communicate with three `/api/api-key` endpoints using `fetch` or a client (e.g., `ky`).
 
-1. **Status Check (On Mount / On Open)**
+1. **Status Check (On App Load and Modal Open)**
    * **Method**: `GET`
    * **Endpoint**: `/api/api-key`
    * **Request**: No body.
    * **Response (Success 200)**: `ApiKeyExistsDto` (`{ exists: boolean }`)
-   * **Action**: Updates `keyStatus` state in the hook.
+   * **Action**: Updates `keyStatus` state in the hook. This check should happen during app initialization to determine if the chat panel should be locked, and again when the modal opens to display current status.
 
 2. **Saving Key (On Form Submit)**
    * **Method**: `PUT`
@@ -148,9 +148,13 @@ The component will communicate with three `/api/api-key` endpoints using `fetch`
 
 ## 8. User Interactions
 
+* **App loads** (initial check):
+  1. During app initialization, `GET /api/api-key` is called.
+  2. If `exists: false`, the chat panel is locked and onboarding is displayed.
+  3. If `exists: true`, the app functions normally.
 * **User opens modal**:
   1. Modal appears.
-  2. `GET /api/api-key` request is called.
+  2. `GET /api/api-key` request is called (to refresh status).
   3. Loading state is displayed (e.g., `Spinner`).
   4. After response, `ApiKeyStatusBadge` shows "Key saved" (green) or "No key" (yellow/red).
 * **User enters key and clicks "Save"**:
