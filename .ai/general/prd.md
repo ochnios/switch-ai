@@ -150,10 +150,10 @@ Title: Deleting Conversations
 Description: As a user, I want to be able to permanently delete conversations I no longer need to keep the list tidy.
 Acceptance Criteria:
 
-1. Each conversation in the list has a "Delete" option.
-2. Clicking "Delete" displays a modal asking for confirmation ("Are you sure you want to permanently delete this conversation?").
-3. Upon confirmation, the conversation is permanently deleted from the database and disappears from the list.
-4. Canceling the operation closes the modal without deleting the conversation.
+1. Each conversation in the list has a "Delete" icon (trash icon).
+2. Clicking "Delete" icon changes it to a "Confirm" state, providing a second click opportunity to confirm deletion.
+3. Upon confirmation (second click), the conversation is permanently deleted from the database and disappears from the list.
+4. Clicking elsewhere or waiting dismisses the confirmation state and returns the icon to its normal "Delete" state without deleting the conversation.
 
 ### Branching
 
