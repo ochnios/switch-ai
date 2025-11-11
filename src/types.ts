@@ -30,7 +30,7 @@ export type MessageRole = Enums<"message_role">;
 
 /**
  * Command to upsert (create or update) an API key
- * @endpoint PUT /api/user/api-key
+ * @endpoint PUT /api/api-key
  */
 export interface UpsertApiKeyCommand {
   apiKey: string;
@@ -100,7 +100,7 @@ export interface ErrorResponseDto {
 
 /**
  * Response indicating whether an API key exists for the user
- * @endpoint GET /api/user/api-key
+ * @endpoint GET /api/api-key
  */
 export interface ApiKeyExistsDto {
   exists: boolean;

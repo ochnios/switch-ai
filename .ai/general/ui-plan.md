@@ -62,7 +62,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 ### View: Settings / API Key Onboarding
 
 * **Path**: `/app/settings` (modal)
-* **Main Goal**: BYOK management — entering, removing, checking existence (GET /user/api-key; PUT /user/api-key; DELETE /user/api-key).
+* **Main Goal**: BYOK management — entering, removing, checking existence (GET /api/api-key; PUT /api/api-key; DELETE /api/api-key).
 * **Key Information**: API key input, validation status (existence check), BYOK instructions, save button, info about server-side encryption.
 * **Key Components**: secure input (mask), status badge, explainers (why we don't see the key).
 * **UX / Accessibility / Security**: key never shown, input clears after sending; tips on account security; validation errors displayed as alerts.
@@ -84,7 +84,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 ### Main Use Case — "Create a new conversation and use a different model for a message"
 
 1. User logs in (`/auth`) → on success, proceeds to `/app`.
-2. App load: fetch `/api/models` once, fetch `/conversations` (first 50). Check `/user/api-key`.
+2. App load: fetch `/api/models` once, fetch `/conversations` (first 50). Check `/api/api-key`.
    * If API key `exists: false` → lock the chat panel and show modal/onboarding with a link to settings.
 3. In the Sidebar, user clicks "New Conversation" or is already in the new chat view (activeConversationId === null).
 4. In the Composer, user selects a model from the Combobox (optionally uses search). The selected model is saved in localStorage as `lastUsedModel`.
@@ -113,7 +113,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 4. **BranchDropdown** — accessible dropdown menu (DropdownMenu from Shadcn/ui) with two options: "Create branch with full history" and "Create branch with summary". Clicking an option triggers `POST /conversations/{id}/messages/{id}/branch` with the selected type, shows loading state on the button, handles errors with non-blocking alert.
 5. **Composer** — textarea, Combobox model selector (searchable), Send button, Token counter, keyboard shortcuts.
 6. **ModelCombobox** — preloaded modelsList from /api/models; searchable; updates lastUsedModel in localStorage on send.
-7. **APIKeyOnboarding** — modal/section with secure input and explanatory text; calls PUT/GET/DELETE /user/api-key.
+7. **APIKeyOnboarding** — modal/section with secure input and explanatory text; calls PUT/GET/DELETE /api/api-key.
 8. **NonBlockingAlert** — inline alert component for API errors (maps error payload to friendly message).
 9. **GlobalState (Zustand store)** — activeConversationId, conversationsList, messagesCache (per conversation), modelsList, lastUsedModel, uiFlags (loading states).
 
@@ -122,9 +122,9 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 ## 6. Mapping Main API Endpoints → UI Goals
 
 * `GET /api/models` → **ModelCombobox** prefetch, save in Zustand; used in Composer.
-* `GET /user/api-key` → **Onboarding flow**: block/unblock chat panel.
-* `PUT /user/api-key` → save key (UI displays success + unblocks chat).
-* `DELETE /user/api-key` → remove key → UI block + instruction.
+* `GET /api/api-key` → **Onboarding flow**: block/unblock chat panel.
+* `PUT /api/api-key` → save key (UI displays success + unblocks chat).
+* `DELETE /api/api-key` → remove key → UI block + instruction.
 * `GET /conversations?page=1&pageSize=50` → **SidebarList** (first 50).
 * `POST /conversations` → create new conversation with the first message (New Chat flow). UI: sets activeConversationId and refreshes list.
 * `GET /conversations/{id}` → (optional) conversation metadata.
@@ -138,7 +138,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 ## 7. Mapping User Stories (PRD) to UI Elements
 
 * **US-001 / US-002 (Registration / Login)** → Auth View (`/auth`) + redirect to `/app` on success.
-* **US-003 (API Key Management)** → Settings `/app/settings` + Onboarding overlay; `GET/PUT/DELETE /user/api-key` integration.
+* **US-003 (API Key Management)** → Settings `/app/settings` + Onboarding overlay; `GET/PUT/DELETE /api/api-key` integration.
 * **US-004 (Send/Receive)** → Composer + `POST /conversations` and `POST /conversations/{id}/messages` + MessageList rendering.
 * **US-005 (Per-message model selection)** → ModelCombobox in Composer; model sent in payload of each POST; `model_name` entry under assistant response.
 * **US-006 (Remember last model)** → localStorage sync ↔ Zustand; preselect Combobox to `lastUsedModel`.
@@ -155,13 +155,13 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 
 * **UX**: minimal clicks for power-user: last model preselected; keyboard shortcuts (Enter send); quick branch/confirm; few spinners; two-step delete instead of modal.
 * **Accessibility**: semantic HTML landmarks (nav, main), role=log/aria-live for new messages, accessible Combobox (aria-expanded, aria-activedescendant), focus management in dialogs, color contrast, keyboard navigation support (tabindex, arrow keys in lists).
-* **Security**: BYOK — key sent only to backend (PUT /user/api-key), not stored in frontend state or localStorage; all HTTP requests via HTTPS; auth via JWT (Bearer) in every request; UI does not log or display the key; message length limit (1-50k chars) and validation before sending; does not reveal server error details to user — shows API error content in a safe form, backend logs details.
+* **Security**: BYOK — key sent only to backend (PUT /api/api-key), not stored in frontend state or localStorage; all HTTP requests via HTTPS; auth via JWT (Bearer) in every request; UI does not log or display the key; message length limit (1-50k chars) and validation before sending; does not reveal server error details to user — shows API error content in a safe form, backend logs details.
 
 ***
 
 ## 9. Potential Error States and Edge Cases (and Handling)
 
-1. **No API key (GET /user/api-key → exists: false)**
+1. **No API key (GET /api/api-key → exists: false)**
    * UI: chat locked, onboarding modal displayed with link to settings, send button not shown.
 2. **Invalid / Exhausted key (402)**
    * UI: inline error message as MessageItem after sending, suggestion "Check your key in settings", option to retry.
