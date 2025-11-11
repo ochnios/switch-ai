@@ -1,203 +1,201 @@
-# Plan implementacji widoku Ustawienia / Klucz API
+# Implementation Plan for API Key Settings View
 
-## 1. Przegląd
+## 1. Overview
 
-Celem tego widoku jest umożliwienie zalogowanemu użytkownikowi zarządzania jego własnym kluczem API OpenRouter (model BYOK - Bring Your Own Key). Widok ten będzie renderowany jako modal w ramach głównej aplikacji. Zapewni on funkcjonalność dodawania (zapisywania), usuwania oraz sprawdzania statusu (czy klucz istnieje) klucza API. Ze względów bezpieczeństwa, klucz API **nigdy** nie będzie pobierany ani wyświetlany w interfejsie użytkownika po jego zapisaniu.
+The purpose of this view is to enable the logged-in user to manage their own OpenRouter API key (BYOK model - Bring Your Own Key). This view will be rendered as a modal within the main application. It will provide functionality for adding (saving), deleting, and checking the status (whether the key exists) of the API key. For security reasons, the API key **will never** be fetched or displayed in the user interface after it has been saved.
 
-## 2. Routing widoku
+## 2. View Routing
 
-Widok będzie dostępny jako komponent modalny, prawdopodobnie wyzwalany z linku "Ustawienia" w nawigacji aplikacji. Ścieżka URL `/app/settings` może być użyta do głębokiego linkowania, które automatycznie otwiera modal. Komponent modalny będzie renderowany na tle aktualnie aktywnego widoku (np. widoku czatu).
+The view will be available as a modal component, likely triggered from the "Settings" link in the application navigation. The URL path `/app/settings` can be used for deep linking, which automatically opens the modal. The modal component will be rendered on top of the currently active view (e.g., the chat view).
 
-## 3. Struktura komponentów
+## 3. Component Structure
 
-Komponenty będą oparte na bibliotece **Shadcn/ui** i **React**.
-
-```text
-
-/app/settings (strona Astro)
-└── SettingsModal (React, client:visible)
-├── Dialog (Shadcn)
-│   ├── DialogTrigger (przycisk "Ustawienia" w UI)
-│   ├── DialogContent
-│   │   ├── DialogHeader
-│   │   │   ├── DialogTitle ("Zarządzanie kluczem API")
-│   │   │   └── DialogDescription ("Wprowadź swój klucz OpenRouter...")
-│   │   ├── ApiKeyStatusBadge (komponent Badge pokazujący status)
-│   │   ├── ApiKeyForm (formularz z logiką)
-│   │   │   ├── Input (type="password" na klucz API)
-│   │   │   ├── p (dla błędów walidacji klienta)
-│   │   │   ├── Button (type="submit", "Zapisz")
-│   │   │   └── Button (variant="destructive", "Usuń klucz")
-│   │   ├── SecurityInfo (wyjaśnienie dot. bezpieczeństwa)
-│   │   ├── Alert (Shadcn, do wyświetlania błędów API)
-│   │   └── DialogFooter
-│   │       └── Button (variant="outline", "Zamknij")
-│   ├── [Opcjonalnie] AlertDialog (Shadcn, do potwierdzenia usunięcia)
+Components will be based on the **Shadcn/ui** library and **React**.
 
 ```
+ /app/settings (Astro page)
+└── SettingsModal (React, client:visible)
+    ├── Dialog (Shadcn)
+    │   ├── DialogTrigger (button "Settings" in UI)
+    │   ├── DialogContent
+    │   │   ├── DialogHeader
+    │   │   │   ├── DialogTitle ("API Key Management")
+    │   │   │   └── DialogDescription ("Enter your OpenRouter key...")
+    │   │   ├── ApiKeyStatusBadge (Badge component showing status)
+    │   │   ├── ApiKeyForm (form with logic)
+    │   │   │   ├── Input (type="password" for API key)
+    │   │   │   ├── p (for client validation errors)
+    │   │   │   ├── Button (type="submit", "Save")
+    │   │   │   └── Button (variant="destructive", "Delete Key")
+    │   │   ├── SecurityInfo (security explanation)
+    │   │   ├── Alert (Shadcn, for displaying API errors)
+    │   │   └── DialogFooter
+    │   │       └── Button (variant="outline", "Close")
+    │   ├── [Optionally] AlertDialog (Shadcn, for delete confirmation)
+```
 
-## 4. Szczegóły komponentów
+## 4. Component Details
 
 ### SettingsModal
 
-* **Opis komponentu**: Główny komponent-kontener. Będzie używał `Dialog` z Shadcn/ui. Będzie odpowiedzialny za zarządzanie ogólnym stanem (otwarcie/zamknięcie) oraz za inicjowanie pobrania statusu klucza API przy otwarciu.
-* **Główne elementy**: `Dialog`, `DialogContent`, `DialogHeader`, `DialogFooter`.
-* **Obsługiwane interakcje**: Otwieranie i zamykanie modala.
-* **Obsługiwana walidacja**: Brak.
-* **Typy**: `ApiKeyStatusViewModel`.
-* **Propsy**: Brak (będzie prawdopodobnie renderowany przez `Layout` lub stronę Astro).
+* **Component Description**: Main container component. Will use `Dialog` from Shadcn/ui. Responsible for managing the overall state (open/close) and initiating the API key status fetch on open.
+* **Main Elements**: `Dialog`, `DialogContent`, `DialogHeader`, `DialogFooter`.
+* **Supported Interactions**: Opening and closing the modal.
+* **Supported Validation**: None.
+* **Types**: `ApiKeyStatusViewModel`.
+* **Props**: None (will likely be rendered by `Layout` or Astro page).
 
 ### ApiKeyStatusBadge
 
-* **Opis komponentu**: Mały komponent `Badge` (Shadcn/ui), który wizualnie informuje użytkownika o aktualnym stanie jego klucza API.
-* **Główne elementy**: `Badge`.
-* **Obsługiwane interakcje**: Brak (tylko wyświetlanie).
-* **Obsługiwana walidacja**: Brak.
-* **Typy**: `ApiKeyStatusViewModel`.
-* **Propsy**:
-  * `status: ApiKeyStatusViewModel` - aktualny stan do wyświetlenia.
+* **Component Description**: Small `Badge` component (Shadcn/ui) that visually informs the user about the current state of their API key.
+* **Main Elements**: `Badge`.
+* **Supported Interactions**: None (display only).
+* **Supported Validation**: None.
+* **Types**: `ApiKeyStatusViewModel`.
+* **Props**:
+  * `status: ApiKeyStatusViewModel` - current state to display.
 
 ### ApiKeyForm
 
-* **Opis komponentu**: Sercem modala jest formularz (np. zarządzany przez `react-hook-form` i `zod`) do wprowadzania i zapisywania klucza. Zawiera również przycisk do usunięcia klucza.
-* **Główne elementy**: `<form>`, `Input`, `Button`.
-* **Obsługiwane interakcje**:
-  * `onChange` na `Input`: aktualizacja stanu formularza.
-  * `onSubmit` na `<form>`: wyzwolenie walidacji i wysłanie żądania `PUT`.
-  * `onClick` na przycisku "Usuń klucz": wyzwolenie żądania `DELETE`.
-* **Obsługiwana walidacja**: Walidacja po stronie klienta (zgodna z backendem):
-  * Klucz jest wymagany (nie może być pusty).
-  * Klucz musi zaczynać się od prefiksu `sk-or-`.
-* **Typy**: `UpsertApiKeyCommand`, `ErrorResponseDto`.
-* **Propsy**:
-  * `currentStatus: ApiKeyStatusViewModel` - do decydowania o logice (np. czy pokazać przycisk "Usuń").
-  * `onSave: (data: UpsertApiKeyCommand) => Promise<void>` - funkcja do zapisu.
-  * `onDelete: () => Promise<void>` - funkcja do usunięcia.
-  * `isSaving: boolean` - do pokazywania stanu ładowania na przycisku "Zapisz".
-  * `isDeleting: boolean` - do pokazywania stanu ładowania na przycisku "Usuń".
+* **Component Description**: The heart of the modal is a form (e.g., managed by `react-hook-form` and `zod`) for entering and saving the key. It also contains a button to delete the key.
+* **Main Elements**: `<form>`, `Input`, `Button`.
+* **Supported Interactions**:
+  * `onChange` on `Input`: updates form state.
+  * `onSubmit` on `<form>`: triggers validation and sends `PUT` request.
+  * `onClick` on "Delete Key" button: triggers `DELETE` request.
+* **Supported Validation**: Client-side validation (consistent with backend):
+  * Key is required (cannot be empty).
+  * Key must start with the prefix `sk-or-`.
+* **Types**: `UpsertApiKeyCommand`, `ErrorResponseDto`.
+* **Props**:
+  * `currentStatus: ApiKeyStatusViewModel` - to decide logic (e.g., whether to show "Delete" button).
+  * `onSave: (data: UpsertApiKeyCommand) => Promise<void>` - function to save.
+  * `onDelete: () => Promise<void>` - function to delete.
+  * `isSaving: boolean` - to show loading state on "Save" button.
+  * `isDeleting: boolean` - to show loading state on "Delete" button.
 
 ### SecurityInfo
 
-* **Opis komponentu**: Statyczny komponent tekstowy (np. `<p>`) z ikoną `Info`. Wyjaśnia użytkownikowi, dlaczego jego klucz nie jest widoczny i że jest bezpiecznie szyfrowany na serwerze.
-* **Główne elementy**: `<p>`, ikona (np. z `lucide-react`).
-* **Obsługiwane interakcje**: Brak.
-* **Obsługiwana walidacja**: Brak.
-* **Typy**: Brak.
-* **Propsy**: Brak.
+* **Component Description**: Static text component (e.g., `<p>`) with an `Info` icon. Explains to the user why their key is not visible and that it is securely encrypted on the server.
+* **Main Elements**: `<p>`, icon (e.g., from `lucide-react`).
+* **Supported Interactions**: None.
+* **Supported Validation**: None.
+* **Types**: None.
+* **Props**: None.
 
-## 5. Typy
+## 5. Types
 
-Będziemy korzystać z istniejących typów DTO, ale dodamy typy ViewModel do zarządzania stanem UI.
+We will use existing DTO types, but add ViewModel types for UI state management.
 
-* **DTO (z `src/types`)**:
+* **DTO (from `src/types`)**:
   * `ApiKeyExistsDto`: `{ exists: boolean }`
   * `UpsertApiKeyCommand`: `{ apiKey: string }`
   * `SuccessResponseDto`: `{ success: boolean, message: string }`
   * `ErrorResponseDto`: `{ statusCode: number, message: string, errors?: ErrorFieldDto[] }`
 
-* **Nowe typy ViewModel (lokalne dla komponentu)**:
+* **New ViewModel Types (local to the component)**:
   * `type ApiKeyStatusViewModel = 'loading' | 'exists' | 'not_exists' | 'error';`
-    * `loading`: Stan początkowy podczas sprawdzania `GET /api/api-key`.
-    * `exists`: `GET` zwrócił `{ exists: true }`.
-    * `not_exists`: `GET` zwrócił `{ exists: false }`.
-    * `error`: Wystąpił błąd podczas sprawdzania `GET`.
+    * `loading`: Initial state while checking `GET /api/api-key`.
+    * `exists`: `GET` returned `{ exists: true }`.
+    * `not_exists`: `GET` returned `{ exists: false }`.
+    * `error`: Error occurred while checking `GET`.
   * `type FormStatus = 'idle' | 'saving' | 'deleting';`
-    * `idle`: Oczekiwanie na akcję użytkownika.
-    * `saving`: Trwa żądanie `PUT`.
-    * `deleting`: Trwa żądanie `DELETE`.
+    * `idle`: Waiting for user action.
+    * `saving`: `PUT` request in progress.
+    * `deleting`: `DELETE` request in progress.
 
-## 6. Zarządzanie stanem
+## 6. State Management
 
-Zalecane jest stworzenie niestandardowego hooka `useApiKeyManager`, który zamknie całą logikę.
+It is recommended to create a custom hook `useApiKeyManager` that encapsulates all the logic.
 
 ### `useApiKeyManager`
 
-* **Cel**: Enkapsulacja logiki pobierania statusu, zapisywania klucza, usuwania klucza, obsługi stanu ładowania i błędów.
-* **Zarządzany stan**:
-  * `keyStatus (ApiKeyStatusViewModel)`: Stan istnienia klucza (domyślnie `'loading'`).
-  * `formStatus (FormStatus)`: Stan operacji formularza (domyślnie `'idle'`).
-  * `apiError (ErrorResponseDto | null)`: Przechowuje ostatni błąd z API (domyślnie `null`).
-* **Funkcje**:
-  * `checkKeyStatus()`: Wywoływana przy montowaniu komponentu (lub otwarciu modala). Wykonuje `GET /api/api-key` i ustawia `keyStatus` na `'exists'` lub `'not_exists'`, lub `'error'` w przypadku niepowodzenia.
-  * `saveKey(data: UpsertApiKeyCommand)`: Ustawia `formStatus` na `'saving'`. Wykonuje `PUT /api/api-key`. W przypadku sukcesu ustawia `keyStatus` na `'exists'`, `formStatus` na `'idle'` i czyści `apiError`. W przypadku błędu ustawia `formStatus` na `'idle'` i wypełnia `apiError`.
-  * `deleteKey()`: Ustawia `formStatus` na `'deleting'`. Wykonuje `DELETE /api/api-key`. W przypadku sukcesu ustawia `keyStatus` na `'not_exists'`, `formStatus` na `'idle'` i czyści `apiError`. W przypadku błędu ustawia `formStatus` na `'idle'` i wypełnia `apiError`.
-  * `clearApiError()`: Ustawia `apiError` na `null`.
+* **Purpose**: Encapsulation of logic for fetching status, saving key, deleting key, handling loading states and errors.
+* **Managed State**:
+  * `keyStatus (ApiKeyStatusViewModel)`: Key existence state (default `'loading'`).
+  * `formStatus (FormStatus)`: Form operation state (default `'idle'`).
+  * `apiError (ErrorResponseDto | null)`: Stores the last API error (default `null`).
+* **Functions**:
+  * `checkKeyStatus()`: Called on component mount (or modal open). Performs `GET /api/api-key` and sets `keyStatus` to `'exists'` or `'not_exists'`, or `'error'` on failure.
+  * `saveKey(data: UpsertApiKeyCommand)`: Sets `formStatus` to `'saving'`. Performs `PUT /api/api-key`. On success, sets `keyStatus` to `'exists'`, `formStatus` to `'idle'`, and clears `apiError`. On error, sets `formStatus` to `'idle'` and populates `apiError`.
+  * `deleteKey()`: Sets `formStatus` to `'deleting'`. Performs `DELETE /api/api-key`. On success, sets `keyStatus` to `'not_exists'`, `formStatus` to `'idle'`, and clears `apiError`. On error, sets `formStatus` to `'idle'` and populates `apiError`.
+  * `clearApiError()`: Sets `apiError` to `null`.
 
-## 7. Integracja API
+## 7. API Integration
 
-Komponent będzie komunikował się z trzema endpointami `/api/api-key` za pomocą `fetch` lub klienta (np. `ky`).
+The component will communicate with three `/api/api-key` endpoints using `fetch` or a client (e.g., `ky`).
 
-1. **Sprawdzanie statusu (On Mount / On Open)**
-   * **Metoda**: `GET`
+1. **Status Check (On Mount / On Open)**
+   * **Method**: `GET`
    * **Endpoint**: `/api/api-key`
-   * **Żądanie**: Brak ciała.
-   * **Odpowiedź (Sukces 200)**: `ApiKeyExistsDto` (`{ exists: boolean }`)
-   * **Akcja**: Aktualizuje stan `keyStatus` w hooku.
+   * **Request**: No body.
+   * **Response (Success 200)**: `ApiKeyExistsDto` (`{ exists: boolean }`)
+   * **Action**: Updates `keyStatus` state in the hook.
 
-2. **Zapisywanie klucza (On Form Submit)**
-   * **Metoda**: `PUT`
+2. **Saving Key (On Form Submit)**
+   * **Method**: `PUT`
    * **Endpoint**: `/api/api-key`
-   * **Żądanie**: `UpsertApiKeyCommand` (`{ apiKey: "sk-or-..." }`)
-   * **Odpowiedź (Sukces 200)**: `SuccessResponseDto` (`{ success: true, ... }`)
-   * **Akcja**: Aktualizuje `keyStatus` na `'exists'`, resetuje formularz (czyści pole inputa), pokazuje powiadomienie o sukcesie.
+   * **Request**: `UpsertApiKeyCommand` (`{ apiKey: "sk-or-..." }`)
+   * **Response (Success 200)**: `SuccessResponseDto` (`{ success: true, ... }`)
+   * **Action**: Updates `keyStatus` to `'exists'`, resets the form (clears input field), shows success notification.
 
-3. **Usuwanie klucza (On Delete Click)**
-   * **Metoda**: `DELETE`
+3. **Deleting Key (On Delete Click)**
+   * **Method**: `DELETE`
    * **Endpoint**: `/api/api-key`
-   * **Żądanie**: Brak ciała.
-   * **Odpowiedź (Sukces 204)**: Brak ciała.
-   * **Akcja**: Aktualizuje `keyStatus` na `'not_exists'`, pokazuje powiadomienie o sukcesie.
+   * **Request**: No body.
+   * **Response (Success 204)**: No body.
+   * **Action**: Updates `keyStatus` to `'not_exists'`, shows success notification.
 
-## 8. Interakcje użytkownika
+## 8. User Interactions
 
-* **Użytkownik otwiera modal**:
-  1. Modal się pojawia.
-  2. Wywoływane jest żądanie `GET /api/api-key`.
-  3. Wyświetlany jest stan ładowania (np. `Spinner`).
-  4. Po odpowiedzi, `ApiKeyStatusBadge` pokazuje "Klucz zapisany" (zielony) lub "Brak klucza" (żółty/czerwony).
-* **Użytkownik wprowadza klucz i klika "Zapisz"**:
-  1. Uruchamiana jest walidacja klienta.
-  2. Jeśli walidacja nie powiedzie się, wyświetlany jest błąd pod polem `Input`, a przycisk "Zapisz" jest nieaktywny.
-  3. Jeśli walidacja przejdzie, przycisk "Zapisz" pokazuje stan ładowania (`Spinner`).
-  4. Wywoływane jest żądanie `PUT`.
-  5. Po sukcesie: pole `Input` jest czyszczone, `ApiKeyStatusBadge` aktualizuje się na "Klucz zapisany", wyświetlany jest komunikat o sukcesie (np. Toast).
-  6. Po błędzie: `Alert` wyświetla komunikat błędu z `ErrorResponseDto`.
-* **Użytkownik klika "Usuń klucz"**:
-  1. (Zalecane) Wyświetlany jest `AlertDialog` z prośbą o potwierdzenie.
-  2. Jeśli użytkownik potwierdzi, przycisk "Usuń klucz" pokazuje stan ładowania.
-  3. Wywoływane jest żądanie `DELETE`.
-  4. Po sukcesie: `ApiKeyStatusBadge` aktualizuje się na "Brak klucza", wyświetlany jest komunikat o sukcesie.
-  5. Po błędzie: `Alert` wyświetla komunikat błędu.
+* **User opens modal**:
+  1. Modal appears.
+  2. `GET /api/api-key` request is called.
+  3. Loading state is displayed (e.g., `Spinner`).
+  4. After response, `ApiKeyStatusBadge` shows "Key saved" (green) or "No key" (yellow/red).
+* **User enters key and clicks "Save"**:
+  1. Client validation is triggered.
+  2. If validation fails, error is displayed under the `Input` field, and "Save" button is inactive.
+  3. If validation passes, "Save" button shows loading state (`Spinner`).
+  4. `PUT` request is called.
+  5. On success: `Input` field is cleared, `ApiKeyStatusBadge` updates to "Key saved", success message is displayed (e.g., Toast).
+  6. On error: `Alert` displays error message from `ErrorResponseDto`.
+* **User clicks "Delete Key"**:
+  1. (Recommended) `AlertDialog` is displayed for confirmation.
+  2. If user confirms, "Delete Key" button shows loading state.
+  3. `DELETE` request is called.
+  4. On success: `ApiKeyStatusBadge` updates to "No key", success message is displayed.
+  5. On error: `Alert` displays error message.
 
-## 9. Warunki i walidacja
+## 9. Conditions and Validation
 
-* **Przycisk "Zapisz"**: Powinien być `disabled`, jeśli:
-  1. Pole `Input` jest puste.
-  2. Wartość w polu `Input` nie zaczyna się od `sk-or-`.
-  3. Trwa jakakolwiek operacja API (`formStatus !== 'idle'` lub `keyStatus === 'loading'`).
-* **Przycisk "Usuń klucz"**: Powinien być `disabled`, jeśli:
-  1. `keyStatus` to `'not_exists'` lub `'loading'`.
-  2. Trwa jakakolwiek operacja API (`formStatus !== 'idle'`).
-* **Pole `Input`**:
-  1. Musi mieć atrybut `type="password"`, aby zamaskować wpisywaną wartość (AC-03 z US-003).
-  2. Walidacja `onChange` lub `onBlur` powinna pokazywać błędy (wymagane, format `sk-or-`) bezpośrednio pod polem.
+* **"Save" Button**: Should be `disabled` if:
+  1. `Input` field is empty.
+  2. Value in `Input` field does not start with `sk-or-`.
+  3. Any API operation is in progress (`formStatus !== 'idle'` or `keyStatus === 'loading'`).
+* **"Delete Key" Button**: Should be `disabled` if:
+  1. `keyStatus` is `'not_exists'` or `'loading'`.
+  2. Any API operation is in progress (`formStatus !== 'idle'`).
+* **Input Field**:
+  1. Must have `type="password"` attribute to mask the entered value (AC-03 from US-003).
+  2. `onChange` or `onBlur` validation should show errors (required, `sk-or-` format) directly under the field.
 
-## 10. Obsługa błędów
+## 10. Error Handling
 
-* **Błąd `GET` (500)**: Wyświetl `Alert` z komunikatem "Nie udało się pobrać statusu klucza API. Spróbuj odświeżyć." Ustaw `keyStatus` na `'error'`, co powinno zablokować formularz.
-* **Błąd `PUT` (400 Bad Request)**: Wyświetl `Alert` z treścią błędu z `ErrorResponseDto` (np. "Nieprawidłowy format klucza API."). Błąd ten powinien być rzadki, jeśli walidacja klienta działa poprawnie.
-* **Błąd `PUT` / `DELETE` (500 Internal Server Error)**: Wyświetl `Alert` z komunikatem "Wystąpił błąd serwera. Spróbuj ponownie później."
-* **Błąd sieci (Offline)**: Błąd `fetch` powinien zostać przechwycony i wyświetlony w `Alert` jako "Brak połączenia z internetem."
+* **GET Error (500)**: Display `Alert` with message "Failed to fetch API key status. Try refreshing." Set `keyStatus` to `'error'`, which should block the form.
+* **PUT Error (400 Bad Request)**: Display `Alert` with error content from `ErrorResponseDto` (e.g., "Invalid API key format."). This error should be rare if client validation works correctly.
+* **PUT / DELETE Error (500 Internal Server Error)**: Display `Alert` with message "Server error occurred. Try again later."
+* **Network Error (Offline)**: `fetch` error should be caught and displayed in `Alert` as "No internet connection."
 
-## 11. Kroki implementacji
+## 11. Implementation Steps
 
-1. **Utworzenie komponentów (layout)**: Stwórz pliki dla `SettingsModal.tsx`, `ApiKeyForm.tsx` i `ApiKeyStatusBadge.tsx`. Zbuduj statyczną strukturę UI używając komponentów Shadcn/ui (`Dialog`, `Input`, `Button`, `Badge`, `Alert`).
-2. **Implementacja `useApiKeyManager`**: Stwórz hook `useApiKeyManager.ts`. Zaimplementuj w nim logikę stanu (`keyStatus`, `formStatus`, `apiError`).
-3. **Integracja `GET`**: W `useApiKeyManager`, zaimplementuj funkcję `checkKeyStatus` wywoływaną w `useEffect` (przy montowaniu). Podłącz stan `keyStatus` do `SettingsModal`, aby warunkowo renderować `ApiKeyStatusBadge` i `Spinner`.
-4. **Implementacja formularza**: W `ApiKeyForm`, użyj `react-hook-form` wraz z `zod` do walidacji (`z.string().startsWith("sk-or-", "Klucz musi zaczynać się od 'sk-or-'")`).
-5. **Integracja `PUT`**: Podłącz `onSubmit` formularza do funkcji `saveKey` z hooka `useApiKeyManager`. Upewnij się, że pole `Input` jest czyszczone po sukcesie (np. przez `reset` z `react-hook-form`).
-6. **Integracja `DELETE`**: Podłącz przycisk "Usuń klucz" do funkcji `deleteKey` z hooka. Dodaj komponent `AlertDialog` (Shadcn/ui) jako potwierdzenie przed wywołaniem `deleteKey`.
-7. **Obsługa stanów ładowania**: Użyj stanu `formStatus` do dezaktywowania przycisków i pokazywania na nich komponentu `Loader2` (z `lucide-react`) podczas operacji API.
-8. **Obsługa błędów**: Przekaż stan `apiError` z hooka do `SettingsModal` i renderuj komponent `Alert` (Shadcn/ui), jeśli `apiError` nie jest `null`. Dodaj przycisk "X" do alertu, aby wywołać `clearApiError`.
-9. **Dopracowanie UX**: Dodaj komponent `SecurityInfo` z wyjaśnieniem. Upewnij się, że wszystkie stany (ładowanie, sukces, błąd, bez klucza, z kluczem) są czytelne i klarowne dla użytkownika.
-10. **Testowanie**: Przetestuj wszystkie scenariusze: ładowanie, dodawanie (sukces/błąd), usuwanie (sukces/błąd), walidacja klienta.
+1. **Create Components (layout)**: Create files for `SettingsModal.tsx`, `ApiKeyForm.tsx`, and `ApiKeyStatusBadge.tsx`. Build static UI structure using Shadcn/ui components (`Dialog`, `Input`, `Button`, `Badge`, `Alert`).
+2. **Implement `useApiKeyManager`**: Create hook `useApiKeyManager.ts`. Implement state logic (`keyStatus`, `formStatus`, `apiError`).
+3. **Integrate GET**: In `useApiKeyManager`, implement `checkKeyStatus` function called in `useEffect` (on mount). Connect `keyStatus` state to `SettingsModal` to conditionally render `ApiKeyStatusBadge` and `Spinner`.
+4. **Implement Form**: In `ApiKeyForm`, use `react-hook-form` with `zod` for validation (`z.string().startsWith("sk-or-", "Key must start with 'sk-or-'")`).
+5. **Integrate PUT**: Connect form `onSubmit` to `saveKey` function from the hook. Ensure `Input` field is cleared on success (e.g., via `reset` from `react-hook-form`).
+6. **Integrate DELETE**: Connect "Delete Key" button to `deleteKey` function from the hook. Add `AlertDialog` component (Shadcn/ui) as confirmation before calling `deleteKey`.
+7. **Handle Loading States**: Use `formStatus` state to disable buttons and show `Loader2` component (from `lucide-react`) on buttons during API operations.
+8. **Handle Errors**: Pass `apiError` state from the hook to `SettingsModal` and render `Alert` component (Shadcn/ui) if `apiError` is not `null`. Add "X" button to the alert to call `clearApiError`.
+9. **Refine UX**: Add `SecurityInfo` component with explanation. Ensure all states (loading, success, error, no key, with key) are clear and understandable for the user.
+10. **Testing**: Test all scenarios: loading, adding (success/error), deleting (success/error), client validation.

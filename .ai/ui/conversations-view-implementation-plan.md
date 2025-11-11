@@ -1,16 +1,16 @@
-# Plan implementacji widoku Sidebar — Conversation List
+# Implementation Plan for Sidebar View — Conversation List
 
-## 1. Przegląd
+## 1. Overview
 
-Widok `Sidebar - Conversation List` (Panel Boczny - Lista Konwersacji) jest kluczowym komponentem nawigacyjnym w aplikacji `switch-ai`. Jego głównym celem jest umożliwienie użytkownikowi przeglądania, przełączania, tworzenia nowych oraz usuwania istniejących konwersacji. Jest to stały element głównego layoutu aplikacji, który współdzieli stan z panelem czatu.
+The `Sidebar - Conversation List` view (Sidebar Panel - Conversation List) is a key navigation component in the `switch-ai` application. Its main purpose is to enable the user to browse, switch, create new, and delete existing conversations. It is a fixed element of the main application layout that shares state with the chat panel.
 
-## 2. Routing widoku
+## 2. View Routing
 
-Ten komponent nie jest samodzielną stroną, lecz częścią głównego layoutu (`/app`). Będzie renderowany jako komponent React wewnątrz pliku layoutu Astro, np. `src/layouts/AppLayout.astro`.
+This component is not a standalone page but part of the main layout (`/app`). It will be rendered as a React component inside the Astro layout file, e.g., `src/layouts/AppLayout.astro`.
 
-## 3. Struktura komponentów
+## 3. Component Structure
 
-Komponenty będą zbudowane w React (`.tsx`) i wykorzystywać komponenty `shadcn/ui` oraz `tailwind` do stylizacji.
+Components will be built in React (`.tsx`) and utilize `shadcn/ui` components and `tailwind` for styling.
 
 ```tsx
 <ConversationSidebar>
@@ -24,45 +24,45 @@ Komponenty będą zbudowane w React (`.tsx`) i wykorzystywać komponenty `shadcn
 
 ***
 
-## 4. Szczegóły komponentów
+## 4. Component Details
 
-### `ConversationSidebar` (Komponent kontenerowy)
+### `ConversationSidebar` (Container Component)
 
-* **Opis komponentu:** Główny kontener panelu bocznego. Odpowiada za pobieranie danych, zarządzanie stanem ładowania/błędu oraz interakcję z globalnym stanem (`activeConversationId`).
-* **Główne elementy:**
-  * `<aside>` lub `<nav>` (dla semantyki i landmark roles).
-  * Komponent `NewConversationButton`.
-  * Komponent `ConversationList`.
-* **Obsługiwane interakcje:** Brak bezpośrednich. Komponent zarządza logiką pobierania danych i przekazuje handlery do komponentów podrzędnych.
-* **Obsługiwana walidacja:** Brak.
-* **Typy:** `PaginatedConversationsDto`, `ConversationDto`.
-* **Propsy:** Brak.
+* **Component Description:** Main sidebar panel container. Responsible for fetching data, managing loading/error states, and interacting with global state (`activeConversationId`).
+* **Main Elements:**
+  * `<aside>` or `<nav>` (for semantics and landmark roles).
+  * `NewConversationButton` component.
+  * `ConversationList` component.
+* **Supported Interactions:** No direct interactions. The component manages data fetching logic and passes handlers to child components.
+* **Supported Validation:** None.
+* **Types:** `PaginatedConversationsDto`, `ConversationDto`.
+* **Props:** None.
 
 ### `NewConversationButton`
 
-* **Opis komponentu:** Lepki (sticky) przycisk "Nowa konwersacja" na górze panelu bocznego.
-* **Główne elementy:**
-  * Komponent `<Button>` z `shadcn/ui`.
-* **Obsługiwane interakcje:**
-  * `onClick`: Ustawia globalny `activeConversationId` na `null`.
-* **Obsługiwana walidacja:** Przycisk jest wyłączony (`disabled`), jeśli `activeConversationId` jest już `null`.
-* **Typy:** Brak.
-* **Propsy:**
+* **Component Description:** Sticky "New Conversation" button at the top of the sidebar panel.
+* **Main Elements:**
+  * `<Button>` component from `shadcn/ui`.
+* **Supported Interactions:**
+  * `onClick`: Sets global `activeConversationId` to `null`.
+* **Supported Validation:** Button is disabled if `activeConversationId` is already `null`.
+* **Types:** None.
+* **Props:**
   * `activeConversationId: string | null`
   * `onNew: () => void`
 
 ### `ConversationList`
 
-* **Opis komponentu:** Renderuje listę konwersacji lub stany ładowania/pusty.
-* **Główne elementy:**
-  * `<ul>` lub `<div>` z rolą `list`.
-  * Komponenty `<Skeleton>` z `shadcn/ui` (podczas ładowania).
-  * Komunikat o błędzie lub pustym stanie.
-  * Lista komponentów `ConversationListItem` (mapowanie danych).
-* **Obsługiwane interakcje:** Brak. Przekazuje handlery `onSelect` i `onDelete` w dół.
-* **Obsługiwana walidacja:** Brak.
-* **Typy:** `ConversationDto`.
-* **Propsy:**
+* **Component Description:** Renders the conversation list or loading/empty states.
+* **Main Elements:**
+  * `<ul>` or `<div>` with `role` `list`.
+  * `<Skeleton>` components from `shadcn/ui` (during loading).
+  * Error or empty state message.
+  * List of `ConversationListItem` components (data mapping).
+* **Supported Interactions:** None. Passes `onSelect` and `onDelete` handlers down.
+* **Supported Validation:** None.
+* **Types:** `ConversationDto`.
+* **Props:**
   * `conversations: ConversationDto[]`
   * `activeConversationId: string | null`
   * `onSelect: (id: string) => void`
@@ -72,20 +72,20 @@ Komponenty będą zbudowane w React (`.tsx`) i wykorzystywać komponenty `shadcn
 
 ### `ConversationListItem`
 
-* **Opis komponentu:** Pojedynczy element na liście konwersacji. Zarządza własnym, dwuetapowym stanem potwierdzenia usunięcia.
-* **Główne elementy:**
-  * `<Button variant="ghost">` (jako główny klikalny element do wyboru).
-  * `<div>` zawierający tytuł (`conversation.title`) i sformatowaną datę (`conversation.created_at`).
-  * `<Button variant="ghost" size="icon">` (przycisk usuwania/potwierdzania).
-* **Obsługiwane interakcje:**
-  * `onClick` (na głównym elemencie): Wywołuje `onSelect(conversation.id)` i resetuje stan potwierdzenia usunięcia.
-  * `onClick` (na przycisku usuwania):
-    * Jeśli `!isConfirmingDelete`: Zatrzymuje propagację zdarzenia, ustawia stan `isConfirmingDelete(true)`.
-    * Jeśli `isConfirmingDelete`: Zatrzymuje propagację zdarzenia, wywołuje `onDelete(conversation.id)`.
-  * `onBlur` (na przycisku usuwania): Ustawia `isConfirmingDelete(false)`, aby anulować akcję.
-* **Obsługiwana walidacja:** Brak.
-* **Typy:** `ConversationDto`.
-* **Propsy:**
+* **Component Description:** Single item on the conversation list. Manages its own two-stage delete confirmation state.
+* **Main Elements:**
+  * `<Button variant="ghost">` (as the main clickable element for selection).
+  * `<div>` containing title (`conversation.title`) and formatted date (`conversation.created_at`).
+  * `<Button variant="ghost" size="icon">` (delete/confirm button).
+* **Supported Interactions:**
+  * `onClick` (on main element): Calls `onSelect(conversation.id)` and resets delete confirmation state.
+  * `onClick` (on delete button):
+    * If `!isConfirmingDelete`: Stops event propagation, sets state `isConfirmingDelete(true)`.
+    * If `isConfirmingDelete`: Stops event propagation, calls `onDelete(conversation.id)`.
+  * `onBlur` (on delete button): Sets `isConfirmingDelete(false)` to cancel the action.
+* **Supported Validation:** None.
+* **Types:** `ConversationDto`.
+* **Props:**
   * `conversation: ConversationDto`
   * `isActive: boolean`
   * `onSelect: (id: string) => void`
@@ -93,11 +93,11 @@ Komponenty będą zbudowane w React (`.tsx`) i wykorzystywać komponenty `shadcn
 
 ***
 
-## 5. Typy
+## 5. Types
 
-Będziemy korzystać głównie z DTO zdefiniowanych w `type_definitions` oraz wprowadzimy jeden typ dla globalnego stanu.
+We will mainly use DTOs defined in `type_definitions` and introduce one type for global state.
 
-* **`ConversationDto`** (z `type_definitions`)
+* **`ConversationDto`** (from `type_definitions`)
   ```typescript
   type ConversationDto = {
     id: string;
@@ -106,14 +106,14 @@ Będziemy korzystać głównie z DTO zdefiniowanych w `type_definitions` oraz wp
     created_at: string; // ISO string
   };
   ```
-* **`PaginatedConversationsDto`** (z `type_definitions`)
+* **`PaginatedConversationsDto`** (from `type_definitions`)
   ```typescript
   interface PaginatedConversationsDto {
     data: ConversationDto[];
     pagination: PaginationDto;
   }
   ```
-* **`ConversationStoreState`** (ViewModel dla globalnego stanu Zustand)
+* **`ConversationStoreState`** (ViewModel for Zustand global state)
   ```typescript
   interface ConversationStoreState {
     activeConversationId: string | null;
@@ -123,140 +123,140 @@ Będziemy korzystać głównie z DTO zdefiniowanych w `type_definitions` oraz wp
 
 ***
 
-## 6. Zarządzanie stanem
+## 6. State Management
 
-Stan będzie zarządzany przy użyciu kombinacji **Zustand** (dla globalnego stanu UI) i **Tanstack Query** (React Query) (dla stanu serwera).
+State will be managed using a combination of **Zustand** (for global UI state) and **Tanstack Query** (React Query) (for server state).
 
-### Globalny stan (Zustand)
+### Global State (Zustand)
 
-Stworzymy `src/stores/useConversationStore.ts`:
+We will create `src/stores/useConversationStore.ts`:
 
-* **Stan:** `activeConversationId: string | null`
-  * Przechowuje ID aktualnie wybranej konwersacji.
-  * `null` oznacza, że aktywny jest tryb "Nowej konwersacji".
-* **Akcja:** `setActiveConversation: (id: string | null) => void`
-  * Ustawia aktywne ID. Komponent `ConversationSidebar` będzie wywoływał tę akcję.
-  * Komponent `ChatPanel` (poza zakresem tego planu) będzie nasłuchiwał zmian tego stanu, aby pobrać odpowiednie wiadomości.
+* **State:** `activeConversationId: string | null`
+  * Stores the ID of the currently selected conversation.
+  * `null` means the "New Conversation" mode is active.
+* **Action:** `setActiveConversation: (id: string | null) => void`
+  * Sets the active ID. The `ConversationSidebar` component will call this action.
+  * The `ChatPanel` component (out of scope for this plan) will listen to changes in this state to fetch appropriate messages.
 
-### Stan serwera (Tanstack Query)
+### Server State (Tanstack Query)
 
-Stworzymy customowe hooki do zarządzania cyklem życia danych API.
+We will create custom hooks to manage the API data lifecycle.
 
-* **`useGetConversations`**:
+* **`useGetConversations`:**
 
-  * Hook oparty na `useQuery`.
+  * Hook based on `useQuery`.
   * `queryKey: ['conversations', { page: 1, pageSize: 50 }]`
-  * `queryFn`: Wywołuje `GET /api/conversations?page=1&pageSize=50`.
-  * Zapewnia `data`, `isLoading`, `isError`, `error`, `refetch`.
-  * Używany w `ConversationSidebar` do pobrania listy.
+  * `queryFn`: Calls `GET /api/conversations?page=1&pageSize=50`.
+  * Provides `data`, `isLoading`, `isError`, `error`, `refetch`.
+  * Used in `ConversationSidebar` to fetch the list.
 
-* **`useDeleteConversation`**:
+* **`useDeleteConversation`:**
 
-  * Hook oparty na `useMutation`.
+  * Hook based on `useMutation`.
   * `mutationFn: (id: string) => fetch('/api/conversations/' + id, { method: 'DELETE' })`
   * `onSuccess`:
-    1. Unieważnia zapytanie `['conversations']` (używając `queryClient.invalidateQueries`), aby automatycznie odświeżyć listę.
-    2. Sprawdza, czy usunięte ID było aktywne (`deletedId === store.activeConversationId`). Jeśli tak, wywołuje `store.setActiveConversation(null)`, aby wyczyścić panel czatu.
-  * `onError`: Wyświetla powiadomienie toast (np. "Nie udało się usunąć konwersacji").
-  * Używany w `ConversationSidebar` i przekazywany jako `onDelete` do `ConversationListItem`.
+    1. Invalidates the `['conversations']` query (using `queryClient.invalidateQueries`) to automatically refresh the list.
+    2. Checks if the deleted ID was active (`deletedId === store.activeConversationId`). If so, calls `store.setActiveConversation(null)` to clear the chat panel.
+  * `onError`: Displays a toast notification (e.g., "Failed to delete conversation").
+  * Used in `ConversationSidebar` and passed as `onDelete` to `ConversationListItem`.
 
 ***
 
-## 7. Integracja API
+## 7. API Integration
 
-Ten widok będzie integrował się z dwoma endpointami:
+This view will integrate with two endpoints:
 
-1. **Pobieranie listy konwersacji**
+1. **Fetching Conversation List**
 
    * **Endpoint:** `GET /api/conversations`
-   * **Użycie:** Wywoływany przy montowaniu komponentu `ConversationSidebar` przez hook `useGetConversations`.
-   * **Parametry zapytania:** `page=1`, `pageSize=50` (zgodnie z `view_description`).
-   * **Typ odpowiedzi (Sukces):** `PaginatedConversationsDto`
-   * **Typ odpowiedzi (Błąd):** `ErrorResponseDto`
+   * **Usage:** Called on mount of `ConversationSidebar` component via `useGetConversations` hook.
+   * **Query Parameters:** `page=1`, `pageSize=50` (according to `view_description`).
+   * **Response Type (Success):** `PaginatedConversationsDto`
+   * **Response Type (Error):** `ErrorResponseDto`
 
-2. **Usuwanie konwersacji**
+2. **Deleting Conversation**
 
    * **Endpoint:** `DELETE /api/conversations/{id}`
-   * **Użycie:** Wywoływany przez hook `useDeleteConversation` po drugim kliknięciu przycisku usuwania w `ConversationListItem`.
-   * **Parametry zapytania:** `id` (z `ConversationDto.id`) jako parametr ścieżki.
-   * **Typ odpowiedzi (Sukces):** `204 No Content`
-   * **Typ odpowiedzi (Błąd):** `ErrorResponseDto`
+   * **Usage:** Called by `useDeleteConversation` hook after the second click on the delete button in `ConversationListItem`.
+   * **Query Parameters:** `id` (from `ConversationDto.id`) as path parameter.
+   * **Response Type (Success):** `204 No Content`
+   * **Response Type (Error):** `ErrorResponseDto`
 
-**Uwaga:** `POST /api/conversations` nie jest wywoływany przez ten widok. Kliknięcie "Nowa konwersacja" jedynie zmienia stan globalny. Panel czatu (`ChatPanel`) będzie odpowiedzialny za wykrycie `activeConversationId === null` i wykonanie `POST` przy wysyłaniu pierwszej wiadomości.
-
-***
-
-## 8. Interakcje użytkownika
-
-* **Ładowanie widoku:** Użytkownik widzi szkielety (`Skeleton`) w miejscu listy podczas pobierania danych.
-* **Przeglądanie listy:** Użytkownik widzi listę konwersacji posortowaną od najnowszej. Aktualnie wybrana (aktywna) konwersacja jest podświetlona (`aria-selected="true"`).
-* **Rozpoczęcie nowej konwersacji (US-007):**
-  1. Użytkownik klika przycisk "Nowa konwersacja".
-  2. Wywoływana jest akcja `setActiveConversation(null)`.
-  3. Przycisk "Nowa konwersacja" staje się nieaktywny (`disabled`).
-  4. Aktywne podświetlenie znika ze wszystkich elementów listy.
-  5. Panel czatu (nasłuchujący stanu) czyści swój widok, gotowy na nową wiadomość.
-* **Przełączanie konwersacji (US-008):**
-  1. Użytkownik klika na element `ConversationListItem`.
-  2. Wywoływana jest akcja `onSelect(id)`, która ustawia `setActiveConversation(id)`.
-  3. Kliknięty element zostaje podświetlony jako aktywny.
-  4. Panel czatu (nasłuchujący stanu) pobiera i wyświetla wiadomości dla `id`.
-* **Usuwanie konwersacji (US-009, zmodyfikowane):**
-  1. Użytkownik klika ikonę `Trash2` na elemencie listy.
-  2. Zdarzenie `onClick` jest zatrzymywane (`stopPropagation`). Wewnętrzny stan `isConfirmingDelete` w `ConversationListItem` ustawia się na `true`.
-  3. Ikona zmienia się na `Check` (potwierdzenie), a przycisk zmienia kolor na czerwony.
-  4. **Scenariusz A (Potwierdzenie):** Użytkownik klika ikonę `Check`.
-     * Wywoływana jest mutacja `useDeleteConversation.mutate(id)`.
-     * Po pomyślnym usunięciu, `onSuccess` odświeża listę (element znika) i ewentualnie czyści panel czatu.
-  5. **Scenariusz B (Anulowanie przez kliknięcie obok):** Użytkownik usuwa fokus z przycisku (np. `onBlur`).
-     * Stan `isConfirmingDelete` wraca na `false`. Ikona wraca do `Trash2`.
-  6. **Scenariusz C (Anulowanie przez wybranie):** Użytkownik klika na główny obszar tego samego `ConversationListItem`.
-     * Wywoływane jest `onSelect(id)`. Handler ten *również* resetuje stan `isConfirmingDelete` do `false`.
+**Note:** `POST /api/conversations` is not called by this view. Clicking "New Conversation" only changes the global state. The chat panel (`ChatPanel`) will be responsible for detecting `activeConversationId === null` and performing `POST` when sending the first message.
 
 ***
 
-## 9. Warunki i walidacja
+## 8. User Interactions
 
-* **Warunek:** Użytkownik musi być uwierzytelniony, aby zobaczyć ten widok.
-  * **Obsługa:** Zarządzane przez routing na poziomie layoutu (`/app`). Jeśli `useGetConversations` zwróci `401 Unauthorized`, hook `useQuery` przejdzie w stan `isError`, a obsługa błędów (patrz niżej) wyświetli odpowiedni komunikat.
-* **Warunek:** Przycisk "Nowa konwersacja" jest nieaktywny, gdy nowa konwersacja jest już "aktywna".
-  * **Obsługa:** Komponent `NewConversationButton` otrzymuje prop `activeConversationId` i ustawia `disabled={activeConversationId === null}`.
+* **Loading the View:** User sees skeletons (`Skeleton`) in place of the list while fetching data.
+* **Browsing the List:** User sees the list of conversations sorted from newest. The currently selected (active) conversation is highlighted (`aria-selected="true"`).
+* **Starting a New Conversation (US-007):**
+  1. User clicks the "New Conversation" button.
+  2. `setActiveConversation(null)` action is called.
+  3. "New Conversation" button becomes inactive (`disabled`).
+  4. Active highlighting disappears from all list items.
+  5. Chat panel (listening to state) clears its view, ready for a new message.
+* **Switching Conversations (US-008):**
+  1. User clicks on a `ConversationListItem`.
+  2. `onSelect(id)` action is called, which sets `setActiveConversation(id)`.
+  3. The clicked item is highlighted as active.
+  4. Chat panel (listening to state) fetches and displays messages for `id`.
+* **Deleting Conversation (US-009, modified):**
+  1. User clicks the `Trash2` icon on a list item.
+  2. `onClick` event is stopped (`stopPropagation`). Internal state `isConfirmingDelete` in `ConversationListItem` is set to `true`.
+  3. Icon changes to `Check` (confirmation), and the button changes color to red.
+  4. **Scenario A (Confirmation):** User clicks the `Check` icon.
+     * `useDeleteConversation.mutate(id)` mutation is called.
+     * After successful deletion, `onSuccess` refreshes the list (item disappears) and possibly clears the chat panel.
+  5. **Scenario B (Cancellation by clicking elsewhere):** User removes focus from the button (e.g., `onBlur`).
+     * `isConfirmingDelete` state returns to `false`. Icon returns to `Trash2`.
+  6. **Scenario C (Cancellation by selection):** User clicks on the main area of the same `ConversationListItem`.
+     * `onSelect(id)` is called. This handler *also* resets `isConfirmingDelete` to `false`.
 
 ***
 
-## 10. Obsługa błędów
+## 9. Conditions and Validation
 
-* **Błąd pobierania listy (`GET /api/conversations`):**
-  * Hook `useGetConversations` ustawi `isError: true` i przekaże obiekt `error`.
-  * Komponent `ConversationList` wykryje `isError` i zamiast listy lub szkieletów wyświetli komunikat o błędzie, np. "Nie można załadować konwersacji." oraz przycisk "Spróbuj ponownie" (wywołujący `refetch` z `useQuery`).
-* **Błąd usuwania (`DELETE /api/conversations/{id}`):**
-  * Hook `useDeleteConversation` wywoła callback `onError`.
-  * Wyświetlimy globalne powiadomienie (toast, np. z `shadcn/ui/use-toast`) z komunikatem "Wystąpił błąd podczas usuwania konwersacji."
-  * Stan `isConfirmingDelete` w `ConversationListItem` zostanie zresetowany do `false`.
-* **Pusta lista:**
-  * Jeśli `!isLoading && !isError && conversations.length === 0`, komponent `ConversationList` wyświetli komunikat, np. "Nie masz jeszcze żadnych konwersacji. Zacznij nową!".
+* **Condition:** User must be authenticated to see this view.
+  * **Handling:** Managed by routing at the layout level (`/app`). If `useGetConversations` returns `401 Unauthorized`, the `useQuery` hook will go into `isError` state, and error handling (see below) will display the appropriate message.
+* **Condition:** "New Conversation" button is inactive when a new conversation is already "active".
+  * **Handling:** `NewConversationButton` component receives `activeConversationId` prop and sets `disabled={activeConversationId === null}`.
 
 ***
 
-## 11. Kroki implementacji
+## 10. Error Handling
 
-1. **Konfiguracja stanu:** Stwórz store Zustand `src/stores/useConversationStore.ts` z `activeConversationId` i `setActiveConversation`.
-2. **Konfiguracja API:** Stwórz hooki `useGetConversations` i `useDeleteConversation` (np. w `src/hooks/api/useConversations.ts`) używając `tanstack/query`. Skonfiguruj `queryClient` w głównym pliku aplikacji.
-3. **Komponenty szkieletowe:** Stwórz komponenty `ConversationSidebar`, `NewConversationButton`, `ConversationList` i `ConversationListItem` z podstawową strukturą HTML (używając `shadcn/ui` `Button`, `Skeleton` itp.) i statycznymi danymi.
-4. **Pobieranie danych:** Zintegruj `useGetConversations` w `ConversationSidebar`. Przekaż `data`, `isLoading`, `isError` do `ConversationList`. Zaimplementuj logikę renderowania dla stanów ładowania, błędu i pustej listy.
-5. **Logika "Nowa konwersacja":**
-   * Pobierz `activeConversationId` i `setActiveConversation` ze store'u Zustand w `ConversationSidebar`.
-   * Przekaż je jako propsy do `NewConversationButton`.
-   * Zaimplementuj logikę `onClick` i `disabled` w `NewConversationButton`.
-6. **Logika wyboru konwersacji:**
-   * Przekaż `activeConversationId` i `setActiveConversation` (jako `onSelect`) w dół do `ConversationList` -> `ConversationListItem`.
-   * W `ConversationListItem` zaimplementuj `onClick` na głównym elemencie, aby wywołać `onSelect`.
-   * Dodaj dynamiczne style (np. `data-[active=true]:...`) i `aria-selected` na podstawie propa `isActive`.
-7. **Logika usuwania (dwa etapy):**
-   * Zintegruj `useDeleteConversation` w `ConversationSidebar` i przekaż `mutate` jako prop `onDelete`.
-   * W `ConversationListItem` dodaj lokalny stan `useState<boolean>(false)` dla `isConfirmingDelete`.
-   * Zaimplementuj logikę przycisku usuwania (ikona `Trash2`), który przy `onClick` zatrzymuje propagację i ustawia `isConfirmingDelete(true)`.
-   * Dodaj logikę `onBlur` na przycisku, aby resetować stan.
-   * Zmień renderowanie przycisku, aby po `isConfirmingDelete(true)` pokazywał ikonę `Check` i miał czerwoną wariację. Kliknięcie go powinno wywołać `onDelete(id)`.
-   * Upewnij się, że `onSuccess` mutacji w `useDeleteConversation` unieważnia zapytanie listy i resetuje `activeConversationId`, jeśli to konieczne.
-8. **Stylowanie i A11y:** Dopracuj stylowanie za pomocą Tailwind, upewnij się, że nawigacja klawiaturą (klawisze strzałek) działa poprawnie na liście (może wymagać `react-aria` lub ręcznej obsługi `onKeyDown`) oraz że wszystkie atrybuty `aria` są poprawnie ustawione.
+* **Fetching List Error (`GET /api/conversations`):**
+  * `useGetConversations` hook will set `isError: true` and pass the `error` object.
+  * `ConversationList` component will detect `isError` and instead of the list or skeletons, display an error message, e.g., "Cannot load conversations." and a "Try Again" button (calling `refetch` from `useQuery`).
+* **Deletion Error (`DELETE /api/conversations/{id}`):**
+  * `useDeleteConversation` hook will call the `onError` callback.
+  * We will display a global notification (toast, e.g., from `shadcn/ui/use-toast`) with message "Error occurred while deleting conversation."
+  * `isConfirmingDelete` state in `ConversationListItem` will be reset to `false`.
+* **Empty List:**
+  * If `!isLoading && !isError && conversations.length === 0`, `ConversationList` component will display a message, e.g., "You don't have any conversations yet. Start a new one!".
+
+***
+
+## 11. Implementation Steps
+
+1. **State Configuration:** Create Zustand store `src/stores/useConversationStore.ts` with `activeConversationId` and `setActiveConversation`.
+2. **API Configuration:** Create hooks `useGetConversations` and `useDeleteConversation` (e.g., in `src/hooks/api/useConversations.ts`) using `tanstack/query`. Configure `queryClient` in the main application file.
+3. **Skeleton Components:** Create components `ConversationSidebar`, `NewConversationButton`, `ConversationList`, and `ConversationListItem` with basic HTML structure (using `shadcn/ui` `Button`, `Skeleton` etc.) and static data.
+4. **Data Fetching:** Integrate `useGetConversations` in `ConversationSidebar`. Pass `data`, `isLoading`, `isError` to `ConversationList`. Implement rendering logic for loading, error, and empty states.
+5. **"New Conversation" Logic:**
+   * Retrieve `activeConversationId` and `setActiveConversation` from the Zustand store in `ConversationSidebar`.
+   * Pass them as props to `NewConversationButton`.
+   * Implement `onClick` and `disabled` logic in `NewConversationButton`.
+6. **Conversation Selection Logic:**
+   * Pass `activeConversationId` and `setActiveConversation` (as `onSelect`) down to `ConversationList` -> `ConversationListItem`.
+   * In `ConversationListItem`, implement `onClick` on the main element to call `onSelect`.
+   * Add dynamic styles (e.g., `data-[active=true]:...`) and `aria-selected` based on `isActive` prop.
+7. **Deletion Logic (two stages):**
+   * Integrate `useDeleteConversation` in `ConversationSidebar` and pass `mutate` as `onDelete` prop.
+   * In `ConversationListItem`, add local state `useState<boolean>(false)` for `isConfirmingDelete`.
+   * Implement delete button logic ( `Trash2` icon), which on `onClick` stops propagation and sets `isConfirmingDelete(true)`.
+   * Add `onBlur` logic on the button to reset the state.
+   * Change button rendering to show `Check` icon and red variant after `isConfirmingDelete(true)`. Clicking it should call `onDelete(id)`.
+   * Ensure `onSuccess` of the mutation in `useDeleteConversation` invalidates the list query and resets `activeConversationId` if necessary.
+8. **Styling and A11y:** Refine styling with Tailwind, ensure keyboard navigation (arrow keys) works correctly on the list (may require `react-aria` or manual `onKeyDown` handling), and that all `aria` attributes are correctly set.
