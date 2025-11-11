@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "../../db/supabase.client";
+import type { ModelDto } from "../../types";
 import { Logger } from "../logger";
 import { ApiKeyService } from "./api-key.service";
 
@@ -33,6 +34,57 @@ export class OpenRouterService {
 
   constructor(private supabase: SupabaseClient) {
     this.apiKeyService = new ApiKeyService(supabase);
+  }
+
+  /**
+   * Fetches the list of available models from OpenRouter API
+   * Currently returns mock data - real implementation will be added later
+   *
+   * @param userId - The user's ID (to retrieve their API key)
+   * @returns Array of models with id and name
+   * @throws Error if API key is not found or OpenRouter API call fails
+   */
+  async fetchModels(userId: string): Promise<ModelDto[]> {
+    // Retrieve and decrypt the user's API key to verify it exists
+    const apiKey = await this.apiKeyService.getApiKey(userId);
+
+    logger.warn("Using mock models implementation", {
+      hasApiKey: !!apiKey,
+    });
+
+    // Mock response - predefined list of popular models
+    const mockModels: ModelDto[] = [
+      {
+        id: "google/gemini-flash-1.5",
+        name: "Gemini Flash 1.5",
+      },
+      {
+        id: "google/gemini-pro-1.5",
+        name: "Gemini Pro 1.5",
+      },
+      {
+        id: "openai/gpt-4-turbo",
+        name: "GPT-4 Turbo",
+      },
+      {
+        id: "openai/gpt-3.5-turbo",
+        name: "GPT-3.5 Turbo",
+      },
+      {
+        id: "anthropic/claude-3-opus",
+        name: "Claude 3 Opus",
+      },
+      {
+        id: "anthropic/claude-3-sonnet",
+        name: "Claude 3 Sonnet",
+      },
+      {
+        id: "meta-llama/llama-3-70b",
+        name: "Llama 3 70B",
+      },
+    ];
+
+    return mockModels;
   }
 
   /**
