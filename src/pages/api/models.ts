@@ -36,11 +36,11 @@ export const GET: APIRoute = async (context) => {
     // Handle API key not found error
     if (error instanceof ApiKeyNotFoundError) {
       const errorResponse: ErrorResponseDto = {
-        statusCode: 400,
+        statusCode: 404,
         message: "API key not configured. Please add your OpenRouter API key first.",
       };
       return new Response(JSON.stringify(errorResponse), {
-        status: 400,
+        status: 404,
         headers: { "Content-Type": "application/json" },
       });
     }
