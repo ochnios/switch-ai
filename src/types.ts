@@ -154,6 +154,24 @@ export interface PaginatedMessagesDto {
   pagination: PaginationDto;
 }
 
+/**
+ * Model DTO for API responses
+ * Contains basic information about an available AI model
+ * @endpoint GET /api/models
+ */
+export interface ModelDto {
+  id: string;
+  name: string;
+}
+
+/**
+ * Response containing list of available models
+ * @endpoint GET /api/models
+ */
+export interface ModelsListDto {
+  data: ModelDto[];
+}
+
 // ============================================================================
 // Utility Types
 // ============================================================================
