@@ -7,6 +7,7 @@ This document outlines the REST API for the `switch-ai` application, based on th
 The API is designed around the following main resources:
 
 * **API Key**: Represents the user's encrypted OpenRouter API key. It is treated as a singleton sub-resource of the user.
+* **Models**: Provides read-only access to the list of available AI models from OpenRouter.
 * **Conversations**: Represents a single chat conversation, containing metadata like title and relationships.
 * **Messages**: Represents an individual message within a conversation. It's the core resource for chat interactions.
 
@@ -72,6 +73,36 @@ Manages the user's OpenRouter API key.
   ```
 * **Success Code**: `200 OK`
 * **Error Codes**: `401 Unauthorized`.
+
+***
+
+### Models
+
+Provides access to the list of available AI models from OpenRouter.
+
+#### Get Available Models
+
+* **Method**: `GET`
+* **Path**: `/models`
+* **Description**: Retrieves the list of available AI models from OpenRouter API. This endpoint acts as a proxy to the OpenRouter models endpoint, using the authenticated user's API key.
+* **Query Parameters**: None
+* **Response Payload**:
+  ```json
+  {
+    "data": [
+      {
+        "id": "google/gemini-flash-1.5",
+        "name": "Gemini Flash 1.5"
+      }
+    ]
+  }
+  ```
+* **Success Code**: `200 OK`
+* **Error Codes**:
+  * `400 Bad Request`: User does not have an API key configured.
+  * `401 Unauthorized`: User is not authenticated.
+  * `402 Payment Required`: The user's OpenRouter key is invalid or has insufficient funds.
+  * `502 Bad Gateway`: An error occurred while communicating with the OpenRouter API.
 
 ***
 
