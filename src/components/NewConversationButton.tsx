@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/useAppStore";
@@ -19,24 +18,7 @@ interface NewConversationButtonProps {
  * - No API key exists (confirmed after loading - apiKeyExists is false AND not loading)
  */
 export function NewConversationButton({ onNavigate }: NewConversationButtonProps) {
-  const { apiKeyExists, uiFlags, setActiveConversation } = useAppStore();
-  const [currentPath, setCurrentPath] = useState(() => (typeof window !== "undefined" ? window.location.pathname : ""));
-
-  // Listen for navigation events to update current path
-  useEffect(() => {
-    const updatePath = () => {
-      setCurrentPath(window.location.pathname);
-    };
-
-    // Update on Astro's navigation events
-    document.addEventListener("astro:after-swap", updatePath);
-    document.addEventListener("astro:page-load", updatePath);
-
-    return () => {
-      document.removeEventListener("astro:after-swap", updatePath);
-      document.removeEventListener("astro:page-load", updatePath);
-    };
-  }, []);
+  const { apiKeyExists, uiFlags, activeConversationId, setActiveConversation } = useAppStore();
 
   const handleClick = () => {
     setActiveConversation(null);
@@ -44,7 +26,7 @@ export function NewConversationButton({ onNavigate }: NewConversationButtonProps
   };
 
   // Check if we're on the /app/new page
-  const isOnNewPage = currentPath === "/app/new";
+  const isOnNewPage = activeConversationId === null;
 
   // Disable if:
   // 1. Already on new conversation page (check URL)
