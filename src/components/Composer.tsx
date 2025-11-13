@@ -89,7 +89,7 @@ export function Composer() {
   const isComposerDisabled = uiFlags.isSendingMessage;
 
   return (
-    <div className="border-t bg-background p-4">
+    <div className="border-t bg-background p-4 pt-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-3">
         {/* Model selector and token counter row */}
         <div className="flex items-center justify-between gap-2">
@@ -119,7 +119,7 @@ export function Composer() {
             }
             disabled={isComposerDisabled}
             className={cn(
-              "min-h-[60px] max-h-[200px] resize-none",
+              "min-h-[40px] max-h-[200px] resize-none",
               isComposerDisabled && "cursor-not-allowed opacity-50"
             )}
             aria-label="Message input"
@@ -128,10 +128,10 @@ export function Composer() {
             onClick={handleSubmit}
             disabled={isSendDisabled}
             size="icon"
-            className="size-[60px] shrink-0"
+            className="size-10 shrink-0"
             aria-label="Send message"
           >
-            <Send className="size-5" />
+            <Send className="size-4" />
           </Button>
         </div>
 

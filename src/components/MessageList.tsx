@@ -12,7 +12,7 @@ interface MessageListProps {
  * MessageList - Scrollable container for displaying messages
  *
  * Features:
- * - Auto-scrolls to bottom on new messages
+ * - Auto-scrolls to bottom on new messages (only when user is near bottom)
  * - Shows loading skeleton during initial load
  * - Converts MessageDto[] to DisplayMessage[] for rendering
  * - Includes aria-live region for accessibility
@@ -23,6 +23,7 @@ export function MessageList({ conversationId }: MessageListProps) {
   const isLoadingMessages = useAppStore((state) => state.uiFlags.isLoadingMessages);
   const isSendingMessage = useAppStore((state) => state.uiFlags.isSendingMessage);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const prevMessagesLengthRef = useRef(0);
 
   const messages = conversationId ? messagesCache[conversationId] || [] : [];
 
@@ -40,11 +41,29 @@ export function MessageList({ conversationId }: MessageListProps) {
     });
   }
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom only when new messages are added
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const currentLength = displayMessages.length;
+    const hasNewMessages = currentLength > prevMessagesLengthRef.current;
+
+    if (hasNewMessages && scrollRef.current) {
+      const scrollElement = scrollRef.current;
+      const isNearBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight < 150;
+
+      // Only auto-scroll if user is near the bottom or this is the first message
+      if (isNearBottom || prevMessagesLengthRef.current === 0) {
+        requestAnimationFrame(() => {
+          if (scrollRef.current) {
+            scrollRef.current.scrollTo({
+              top: scrollRef.current.scrollHeight,
+              behavior: prevMessagesLengthRef.current === 0 ? "auto" : "smooth",
+            });
+          }
+        });
+      }
     }
+
+    prevMessagesLengthRef.current = currentLength;
   }, [displayMessages.length]);
 
   // Loading state - show skeleton
@@ -76,14 +95,16 @@ export function MessageList({ conversationId }: MessageListProps) {
   return (
     <div
       ref={scrollRef}
-      className="flex flex-1 flex-col overflow-y-auto"
+      className="scrollbar-auto-hide flex flex-1 flex-col overflow-y-auto"
       role="region"
       aria-label="Messages"
       aria-live="polite"
       aria-atomic="false"
     >
+      {/* Spacer to push messages to bottom when there are few */}
+      <div className="flex-1" />
       <div className="mx-auto w-full max-w-3xl">
-        {displayMessages.map((message, index) => (
+        {displayMessages.map((message) => (
           <MessageItem
             key={message.type === "message" ? message.data.id : message.id}
             message={message}

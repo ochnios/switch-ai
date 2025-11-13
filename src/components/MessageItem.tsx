@@ -2,7 +2,6 @@ import { User, Bot, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModelBadge } from "./ModelBadge";
 import { BranchAction } from "./BranchAction";
-import { cn } from "@/lib/utils";
 import type { DisplayMessage } from "@/types/ui";
 
 interface MessageItemProps {
@@ -54,30 +53,40 @@ export function MessageItem({ message, conversationId }: MessageItemProps) {
   }
 
   // Regular message (user or assistant)
-  const isAssistant = message.data.role === "assistant";
   const isUser = message.data.role === "user";
 
+  // User message - bubble style on the right
+  if (isUser) {
+    return (
+      <div className="group flex justify-end gap-3 px-4 py-3">
+        {/* Message bubble */}
+        <div className="flex max-w-[80%] flex-col gap-2 rounded-2xl bg-muted px-4 py-3">
+          <p className="whitespace-pre-wrap leading-relaxed">{message.data.content}</p>
+        </div>
+
+        {/* Avatar */}
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
+          <User className="size-4 text-foreground" />
+        </div>
+      </div>
+    );
+  }
+
+  // Assistant message - full width on the left
   return (
-    <div className={cn("group flex gap-4 px-4 py-6", isUser && "bg-muted/30")}>
+    <div className="group flex gap-4 px-4 py-6">
       {/* Avatar */}
-      <div
-        className={cn(
-          "flex size-8 shrink-0 items-center justify-center rounded-full",
-          isUser ? "bg-primary" : "bg-muted"
-        )}
-      >
-        {isUser ? <User className="size-4 text-primary-foreground" /> : <Bot className="size-4" />}
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
+        <Bot className="size-4" />
       </div>
 
       {/* Message content */}
       <div className="flex flex-1 flex-col gap-2">
         {/* Header with model badge and branch action */}
-        {isAssistant && (
-          <div className="flex items-center justify-between gap-2">
-            {message.data.model_name && <ModelBadge modelName={message.data.model_name} />}
-            {conversationId && <BranchAction messageId={message.data.id} conversationId={conversationId} />}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {message.data.model_name && <ModelBadge modelName={message.data.model_name} />}
+          {conversationId && <BranchAction messageId={message.data.id} conversationId={conversationId} />}
+        </div>
 
         {/* Message text - will be replaced with Markdown rendering later */}
         <div className="prose prose-sm dark:prose-invert max-w-none">

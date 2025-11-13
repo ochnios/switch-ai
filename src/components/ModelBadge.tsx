@@ -18,4 +18,3 @@ export function ModelBadge({ modelName }: ModelBadgeProps) {
     </div>
   );
 }
-
