@@ -29,3 +29,13 @@ export type DisplayMessage =
       type: "loading";
       id: string; // fixed ID, e.g. 'loading-skeleton'
     };
+
+/**
+ * ViewModel type for API key status in the settings view
+ */
+export type ApiKeyStatusViewModel = "loading" | "exists" | "not_exists" | "error";
+
+/**
+ * ViewModel type for form operation status in the settings view
+ */
+export type FormStatus = "idle" | "saving" | "deleting";

@@ -2,11 +2,11 @@
 
 ## 1. Overview
 
-The purpose of this view is to enable the logged-in user to manage their own OpenRouter API key (BYOK model - Bring Your Own Key). This view will be rendered as a modal within the main application. It will provide functionality for adding (saving), deleting, and checking the status (whether the key exists) of the API key. For security reasons, the API key **will never** be fetched or displayed in the user interface after it has been saved.
+The purpose of this view is to enable the logged-in user to manage their own OpenRouter API key (BYOK model - Bring Your Own Key). This view will be rendered as a separate page within the application. It will provide functionality for adding (saving), deleting, and checking the status (whether the key exists) of the API key. For security reasons, the API key **will never** be fetched or displayed in the user interface after it has been saved.
 
 ## 2. View Routing
 
-The view will be available as a modal component, triggered from the "Settings" button located at the top of the sidebar. The URL path `/app/settings` can be used for deep linking, which automatically opens the modal. The modal component will be rendered on top of the currently active view (e.g., the chat view).
+The view will be available as a separate page at the URL path `/app/settings`. Users can navigate to this page by clicking the "Settings" button located at the top of the sidebar. The page will use the standard application layout and replace the current view when navigated to.
 
 ## 3. Component Structure
 
@@ -14,36 +14,31 @@ Components will be based on the **Shadcn/ui** library and **React**.
 
 ```
  /app/settings (Astro page)
-└── SettingsModal (React, client:visible)
-    ├── Dialog (Shadcn)
-    │   ├── DialogTrigger (button "Settings" in UI)
-    │   ├── DialogContent
-    │   │   ├── DialogHeader
-    │   │   │   ├── DialogTitle ("API Key Management")
-    │   │   │   └── DialogDescription ("Enter your OpenRouter key...")
-    │   │   ├── ApiKeyStatusBadge (Badge component showing status)
-    │   │   ├── ApiKeyForm (form with logic)
-    │   │   │   ├── Input (type="password" for API key)
-    │   │   │   ├── p (for client validation errors)
-    │   │   │   ├── Button (type="submit", "Save")
-    │   │   │   └── Button (variant="destructive", "Delete Key")
-    │   │   ├── SecurityInfo (security explanation)
-    │   │   ├── Alert (Shadcn, for displaying API errors)
-    │   │   └── DialogFooter
-    │   │       └── Button (variant="outline", "Close")
-    │   ├── [Optionally] AlertDialog (Shadcn, for delete confirmation)
+└── SettingsView (React, client:visible)
+    ├── Page Header
+    │   ├── h1 ("API Key Management")
+    │   └── p (description: "Enter your OpenRouter key...")
+    ├── ApiKeyStatusBadge (Badge component showing status)
+    ├── ApiKeyForm (form with logic)
+    │   ├── Input (type="password" for API key)
+    │   ├── p (for client validation errors)
+    │   ├── Button (type="submit", "Save")
+    │   └── Button (variant="destructive", "Delete Key")
+    ├── SecurityInfo (security explanation)
+    ├── Alert (Shadcn, for displaying API errors)
+    └── [Optionally] AlertDialog (Shadcn, for delete confirmation)
 ```
 
 ## 4. Component Details
 
-### SettingsModal
+### SettingsView
 
-* **Component Description**: Main container component. Will use `Dialog` from Shadcn/ui. Responsible for managing the overall state (open/close) and initiating the API key status fetch on open.
-* **Main Elements**: `Dialog`, `DialogContent`, `DialogHeader`, `DialogFooter`.
-* **Supported Interactions**: Opening and closing the modal.
+* **Component Description**: Main container component for the settings page. Responsible for managing the overall state and initiating the API key status fetch on page load.
+* **Main Elements**: Page header (`h1`, `p`), content container with form components.
+* **Supported Interactions**: Navigation to/from the page.
 * **Supported Validation**: None.
 * **Types**: `ApiKeyStatusViewModel`.
-* **Props**: None (will likely be rendered by `Layout` or Astro page).
+* **Props**: None (will be rendered by the Astro page).
 
 ### ApiKeyStatusBadge
 
@@ -57,7 +52,7 @@ Components will be based on the **Shadcn/ui** library and **React**.
 
 ### ApiKeyForm
 
-* **Component Description**: The heart of the modal is a form (e.g., managed by `react-hook-form` and `zod`) for entering and saving the key. It also contains a button to delete the key.
+* **Component Description**: The heart of the view is a form (e.g., managed by `react-hook-form` and `zod`) for entering and saving the key. It also contains a button to delete the key.
 * **Main Elements**: `<form>`, `Input`, `Button`.
 * **Supported Interactions**:
   * `onChange` on `Input`: updates form state.
@@ -116,7 +111,7 @@ It is recommended to create a custom hook `useApiKeyManager` that encapsulates a
   * `formStatus (FormStatus)`: Form operation state (default `'idle'`).
   * `apiError (ErrorResponseDto | null)`: Stores the last API error (default `null`).
 * **Functions**:
-  * `checkKeyStatus()`: Called on component mount (or modal open). Performs `GET /api/api-key` and sets `keyStatus` to `'exists'` or `'not_exists'`, or `'error'` on failure.
+  * `checkKeyStatus()`: Called on component mount (page load). Performs `GET /api/api-key` and sets `keyStatus` to `'exists'` or `'not_exists'`, or `'error'` on failure.
   * `saveKey(data: UpsertApiKeyCommand)`: Sets `formStatus` to `'saving'`. Performs `PUT /api/api-key`. On success, sets `keyStatus` to `'exists'`, `formStatus` to `'idle'`, and clears `apiError`. On error, sets `formStatus` to `'idle'` and populates `apiError`.
   * `deleteKey()`: Sets `formStatus` to `'deleting'`. Performs `DELETE /api/api-key`. On success, sets `keyStatus` to `'not_exists'`, `formStatus` to `'idle'`, and clears `apiError`. On error, sets `formStatus` to `'idle'` and populates `apiError`.
   * `clearApiError()`: Sets `apiError` to `null`.
@@ -125,12 +120,12 @@ It is recommended to create a custom hook `useApiKeyManager` that encapsulates a
 
 The component will communicate with three `/api/api-key` endpoints using `fetch` or a client (e.g., `ky`).
 
-1. **Status Check (On App Load and Modal Open)**
+1. **Status Check (On App Load and Settings Page Load)**
    * **Method**: `GET`
    * **Endpoint**: `/api/api-key`
    * **Request**: No body.
    * **Response (Success 200)**: `ApiKeyExistsDto` (`{ exists: boolean }`)
-   * **Action**: Updates `keyStatus` state in the hook. This check should happen during app initialization to determine if the chat panel should be locked, and again when the modal opens to display current status.
+   * **Action**: Updates `keyStatus` state in the hook. This check should happen during app initialization to determine if the chat panel should be locked, and again when the settings page loads to display current status.
 
 2. **Saving Key (On Form Submit)**
    * **Method**: `PUT`
@@ -152,9 +147,9 @@ The component will communicate with three `/api/api-key` endpoints using `fetch`
   1. During app initialization, `GET /api/api-key` is called.
   2. If `exists: false`, the chat panel is locked and onboarding is displayed.
   3. If `exists: true`, the app functions normally.
-* **User opens modal**:
-  1. Modal appears.
-  2. `GET /api/api-key` request is called (to refresh status).
+* **User navigates to settings page**:
+  1. Settings page loads.
+  2. `GET /api/api-key` request is called (to fetch current status).
   3. Loading state is displayed (e.g., `Spinner`).
   4. After response, `ApiKeyStatusBadge` shows "Key saved" (green) or "No key" (yellow/red).
 * **User enters key and clicks "Save"**:
@@ -193,13 +188,13 @@ The component will communicate with three `/api/api-key` endpoints using `fetch`
 
 ## 11. Implementation Steps
 
-1. **Create Components (layout)**: Create files for `SettingsModal.tsx`, `ApiKeyForm.tsx`, and `ApiKeyStatusBadge.tsx`. Build static UI structure using Shadcn/ui components (`Dialog`, `Input`, `Button`, `Badge`, `Alert`).
+1. **Create Components (layout)**: Create files for `SettingsView.tsx`, `ApiKeyForm.tsx`, and `ApiKeyStatusBadge.tsx`. Build static UI structure using Shadcn/ui components (`Input`, `Button`, `Badge`, `Alert`).
 2. **Implement `useApiKeyManager`**: Create hook `useApiKeyManager.ts`. Implement state logic (`keyStatus`, `formStatus`, `apiError`).
-3. **Integrate GET**: In `useApiKeyManager`, implement `checkKeyStatus` function called in `useEffect` (on mount). Connect `keyStatus` state to `SettingsModal` to conditionally render `ApiKeyStatusBadge` and `Spinner`.
+3. **Integrate GET**: In `useApiKeyManager`, implement `checkKeyStatus` function called in `useEffect` (on mount). Connect `keyStatus` state to `SettingsView` to conditionally render `ApiKeyStatusBadge` and `Spinner`.
 4. **Implement Form**: In `ApiKeyForm`, use `react-hook-form` with `zod` for validation (`z.string().startsWith("sk-or-", "Key must start with 'sk-or-'")`).
 5. **Integrate PUT**: Connect form `onSubmit` to `saveKey` function from the hook. Ensure `Input` field is cleared on success (e.g., via `reset` from `react-hook-form`).
 6. **Integrate DELETE**: Connect "Delete Key" button to `deleteKey` function from the hook. Add `AlertDialog` component (Shadcn/ui) as confirmation before calling `deleteKey`.
 7. **Handle Loading States**: Use `formStatus` state to disable buttons and show `Loader2` component (from `lucide-react`) on buttons during API operations.
-8. **Handle Errors**: Pass `apiError` state from the hook to `SettingsModal` and render `Alert` component (Shadcn/ui) if `apiError` is not `null`. Add "X" button to the alert to call `clearApiError`.
+8. **Handle Errors**: Pass `apiError` state from the hook to `SettingsView` and render `Alert` component (Shadcn/ui) if `apiError` is not `null`. Add "X" button to the alert to call `clearApiError`.
 9. **Refine UX**: Add `SecurityInfo` component with explanation. Ensure all states (loading, success, error, no key, with key) are clear and understandable for the user.
 10. **Testing**: Test all scenarios: loading, adding (success/error), deleting (success/error), client validation.

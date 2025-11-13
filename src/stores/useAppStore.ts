@@ -54,6 +54,9 @@ interface AppState {
 
   // Error state
   conversationsError: string | null;
+
+  // Initialization flag to prevent redundant fetches
+  isInitialized: boolean;
 }
 
 interface AppActions {
@@ -120,13 +123,23 @@ export const useAppStore = create<AppStore>()(
         isBranching: false,
       },
       conversationsError: null,
+      isInitialized: false,
 
       // Actions
       initializeApp: async () => {
+        // Skip initialization if already initialized
+        if (get().isInitialized) {
+          // Only sync URL state on subsequent calls
+          get().syncFromUrl();
+          return;
+        }
+
         // Sync state from URL first
         get().syncFromUrl();
         // Fetch all initial data in parallel
         await Promise.all([get().fetchApiKeyStatus(), get().fetchModels(), get().fetchConversations()]);
+        // Mark as initialized
+        set({ isInitialized: true });
       },
 
       syncFromUrl: () => {
@@ -318,14 +331,12 @@ export const useAppStore = create<AppStore>()(
 
         // Optimistic update: Add user message and loading indicator
         const tempUserId = `temp-user-${Date.now()}`;
-        const loadingId = "loading-skeleton";
 
         const tempUserMessage: MessageDto = {
           id: tempUserId,
           role: "user",
           content: cmd.content,
           created_at: new Date().toISOString(),
-          parent_message_id: null,
           model_name: null,
           prompt_tokens: null,
           completion_tokens: null,
@@ -542,7 +553,8 @@ export const useAppStore = create<AppStore>()(
       name: "switch-ai-storage",
       // Only persist conversations list, models list, and last used model
       // activeConversationId comes from URL
-      // apiKeyExists should be fetched fresh
+      // apiKeyExists should be fetched fresh on each page load
+      // isInitialized is session-based (in-memory only) - resets on page reload
       // uiFlags are transient state
       // messagesCache is fetched on demand
       partialize: (state) => ({

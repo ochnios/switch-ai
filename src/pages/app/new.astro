@@ -5,6 +5,6 @@ import { ChatPanelView } from "@/components/ChatPanelView";
 ---
 
 <AppLayout title="New Conversation - switch-ai">
-  <ConversationSidebar slot="sidebar" client:only="react" />
+  <ConversationSidebar slot="sidebar" client:only="react" transition:persist="sidebar-content" />
   <ChatPanelView slot="main" conversationId={null} client:only="react" />
 </AppLayout>
