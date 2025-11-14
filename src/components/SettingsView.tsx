@@ -1,5 +1,6 @@
 import { useApiKeyManager } from "@/components/hooks/useApiKeyManager";
 import { ApiKeyStatusBadge } from "@/components/ApiKeyStatusBadge";
+import { ApiKeyForm } from "@/components/ApiKeyForm";
 import { SecurityInfo } from "@/components/SecurityInfo";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, X } from "lucide-react";
@@ -10,16 +11,14 @@ import { Button } from "@/components/ui/button";
  * Renders the API key management interface with status, form, and security information
  */
 export function SettingsView() {
-  const { keyStatus, formStatus, apiError, clearApiError } = useApiKeyManager();
+  const { keyStatus, formStatus, apiError, saveKey, deleteKey, clearApiError } = useApiKeyManager();
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-6">
       {/* Page Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your application settings and preferences
-        </p>
+        <p className="text-muted-foreground">Manage settings and preferences</p>
       </div>
 
       {/* API Key Section */}
@@ -76,10 +75,8 @@ export function SettingsView() {
           </Alert>
         )}
 
-        {/* Form will be added in next step */}
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">Form will be implemented next...</p>
-        </div>
+        {/* API Key Form */}
+        <ApiKeyForm currentStatus={keyStatus} formStatus={formStatus} onSave={saveKey} onDelete={deleteKey} />
 
         {/* Security Information */}
         <SecurityInfo />
@@ -87,4 +84,3 @@ export function SettingsView() {
     </div>
   );
 }
-

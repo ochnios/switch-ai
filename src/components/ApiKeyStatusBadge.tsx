@@ -22,7 +22,7 @@ export function ApiKeyStatusBadge({ status }: ApiKeyStatusBadgeProps) {
 
   if (status === "exists") {
     return (
-      <Badge variant="default">
+      <Badge variant="default" className="bg-green-600 hover:bg-green-600">
         <CheckCircle2 />
         API Key Saved
       </Badge>
@@ -46,4 +46,3 @@ export function ApiKeyStatusBadge({ status }: ApiKeyStatusBadgeProps) {
     </Badge>
   );
 }
-
