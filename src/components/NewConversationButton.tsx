@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/useAppStore";
@@ -18,15 +19,35 @@ interface NewConversationButtonProps {
  * - No API key exists (confirmed after loading - apiKeyExists is false AND not loading)
  */
 export function NewConversationButton({ onNavigate }: NewConversationButtonProps) {
-  const { apiKeyExists, uiFlags, activeConversationId, setActiveConversation } = useAppStore();
+  const { apiKeyExists, uiFlags, setActiveConversation } = useAppStore();
+  const [currentPath, setCurrentPath] = useState("");
+
+  // Track URL changes to update button state
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updatePath = () => setCurrentPath(window.location.pathname);
+
+    // Set initial path
+    updatePath();
+
+    // Listen for navigation events (View Transitions and regular navigation)
+    window.addEventListener("popstate", updatePath);
+    document.addEventListener("astro:after-swap", updatePath);
+
+    return () => {
+      window.removeEventListener("popstate", updatePath);
+      document.removeEventListener("astro:after-swap", updatePath);
+    };
+  }, []);
 
   const handleClick = () => {
     setActiveConversation(null);
     onNavigate?.();
   };
 
-  // Check if we're on the /app/new page
-  const isOnNewPage = activeConversationId === null;
+  // Check if we're on the /app/new page by checking the actual URL
+  const isOnNewPage = currentPath === "/app/new";
 
   // Disable if:
   // 1. Already on new conversation page (check URL)
