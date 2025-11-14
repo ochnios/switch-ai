@@ -4,9 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ModelSelector } from "./ModelSelector";
 import { TokenCounter } from "./TokenCounter";
-import { useTokenCounter } from "./hooks/useTokenCounter";
 import { useAppStore } from "@/stores/useAppStore";
 import { cn } from "@/lib/utils";
+import type { SendMessageCommand, CreateConversationFromMessageCommand } from "@/types";
+
+interface ComposerProps {
+  onSendMessage: (cmd: SendMessageCommand | CreateConversationFromMessageCommand) => Promise<void>;
+  isSending: boolean;
+  totalTokens: number;
+}
 
 /**
  * Composer - Bottom panel for composing and sending messages
@@ -19,18 +25,14 @@ import { cn } from "@/lib/utils";
  * - Keyboard shortcuts (Enter to send, Shift+Enter for newline)
  * - Remembers last used model
  */
-export function Composer() {
-  const activeConversationId = useAppStore((state) => state.activeConversationId);
+export function Composer({ onSendMessage, isSending, totalTokens }: ComposerProps) {
   const modelsList = useAppStore((state) => state.modelsList);
   const lastUsedModel = useAppStore((state) => state.lastUsedModel);
-  const uiFlags = useAppStore((state) => state.uiFlags);
-  const sendMessage = useAppStore((state) => state.sendMessage);
+  const isLoadingModels = useAppStore((state) => state.uiFlags.isLoadingModels);
 
   const [inputText, setInputText] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const totalTokens = useTokenCounter(activeConversationId);
 
   // Initialize selected model from lastUsedModel or first available model
   useEffect(() => {
@@ -54,7 +56,7 @@ export function Composer() {
   const handleSubmit = async () => {
     const trimmedText = inputText.trim();
 
-    if (!trimmedText || !selectedModel || uiFlags.isSendingMessage) {
+    if (!trimmedText || !selectedModel || isSending) {
       return;
     }
 
@@ -65,7 +67,7 @@ export function Composer() {
     textareaRef.current?.focus();
 
     // Send message
-    await sendMessage({
+    await onSendMessage({
       content: trimmedText,
       model: selectedModel,
     });
@@ -80,13 +82,9 @@ export function Composer() {
   };
 
   const isSendDisabled =
-    inputText.trim().length === 0 ||
-    uiFlags.isSendingMessage ||
-    uiFlags.isLoadingModels ||
-    modelsList.length === 0 ||
-    !selectedModel;
+    inputText.trim().length === 0 || isSending || isLoadingModels || modelsList.length === 0 || !selectedModel;
 
-  const isComposerDisabled = uiFlags.isSendingMessage;
+  const isComposerDisabled = isSending;
 
   return (
     <div className="border-t bg-background p-4 pt-6">
@@ -97,7 +95,7 @@ export function Composer() {
             value={selectedModel}
             onChange={setSelectedModel}
             modelsList={modelsList}
-            isLoading={uiFlags.isLoadingModels}
+            isLoading={isLoadingModels}
             disabled={isComposerDisabled}
           />
           <TokenCounter totalTokens={totalTokens} />

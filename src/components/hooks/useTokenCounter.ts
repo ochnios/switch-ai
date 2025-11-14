@@ -1,22 +1,15 @@
 import { useMemo } from "react";
-import { useAppStore } from "@/stores/useAppStore";
+import type { MessageDto } from "@/types";
 
 /**
  * Hook to calculate total tokens from the last assistant message
- * in the current conversation.
+ * in the provided messages array.
  *
- * @param conversationId - ID of the conversation to count tokens for
+ * @param messages - Array of messages to count tokens from
  * @returns Total tokens (prompt + completion) from last assistant message, or 0 if none
  */
-export function useTokenCounter(conversationId: string | null): number {
-  // Get messages from cache
-  const messagesCache = useAppStore((state) => state.messagesCache);
-
+export function useTokenCounter(messages: MessageDto[]): number {
   const totalTokens = useMemo(() => {
-    if (!conversationId) return 0;
-
-    const messages = messagesCache[conversationId] || [];
-
     // Find the last assistant message
     const lastAssistantMessage = [...messages].reverse().find((msg) => msg.role === "assistant");
 
@@ -27,7 +20,7 @@ export function useTokenCounter(conversationId: string | null): number {
     const completionTokens = lastAssistantMessage.completion_tokens || 0;
 
     return promptTokens + completionTokens;
-  }, [conversationId, messagesCache]);
+  }, [messages]);
 
   return totalTokens;
 }

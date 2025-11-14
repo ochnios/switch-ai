@@ -1,10 +1,13 @@
 import { useEffect, useRef } from "react";
 import { MessageItem } from "./MessageItem";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAppStore } from "@/stores/useAppStore";
+import type { MessageDto } from "@/types";
 import type { DisplayMessage } from "@/types/ui";
 
 interface MessageListProps {
+  messages: MessageDto[];
+  isLoading: boolean;
+  isSending: boolean;
   conversationId: string | null;
 }
 
@@ -18,14 +21,9 @@ interface MessageListProps {
  * - Includes aria-live region for accessibility
  * - Shows loading indicator when sending message
  */
-export function MessageList({ conversationId }: MessageListProps) {
-  const messagesCache = useAppStore((state) => state.messagesCache);
-  const isLoadingMessages = useAppStore((state) => state.uiFlags.isLoadingMessages);
-  const isSendingMessage = useAppStore((state) => state.uiFlags.isSendingMessage);
+export function MessageList({ messages, isLoading, isSending, conversationId }: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
-
-  const messages = conversationId ? messagesCache[conversationId] || [] : [];
 
   // Convert MessageDto[] to DisplayMessage[]
   const displayMessages: DisplayMessage[] = messages.map((msg) => ({
@@ -34,7 +32,7 @@ export function MessageList({ conversationId }: MessageListProps) {
   }));
 
   // Add loading indicator when sending message
-  if (isSendingMessage && conversationId) {
+  if (isSending && conversationId) {
     displayMessages.push({
       type: "loading",
       id: "loading-skeleton",
@@ -67,13 +65,17 @@ export function MessageList({ conversationId }: MessageListProps) {
   }, [displayMessages.length]);
 
   // Loading state - show skeleton
-  if (isLoadingMessages) {
+  if (isLoading) {
     return (
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4" role="region" aria-label="Messages">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-24 w-full" />
+      <div className="flex flex-1 flex-col overflow-y-auto" role="region" aria-label="Messages">
+        {/* Spacer to push skeletons to bottom, matching message position */}
+        <div className="flex-1" />
+        <div className="mx-auto w-full max-w-3xl p-4">
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
         </div>
       </div>
     );

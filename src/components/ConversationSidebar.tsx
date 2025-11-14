@@ -44,13 +44,8 @@ export function ConversationSidebar({ onNavigate }: ConversationSidebarProps) {
 
   return (
     <div className="flex h-full flex-col gap-2 p-3">
-      {/* Settings Button at the top */}
-      <SettingsButton onNavigate={onNavigate} />
-
-      {/* New Conversation Button */}
       <NewConversationButton onNavigate={onNavigate} />
 
-      {/* Conversation List */}
       <ConversationList
         conversations={conversationsList}
         activeConversationId={activeConversationId}
@@ -60,6 +55,8 @@ export function ConversationSidebar({ onNavigate }: ConversationSidebarProps) {
         isLoading={uiFlags.isLoadingConversations}
         isError={!!conversationsError}
       />
+
+      <SettingsButton onNavigate={onNavigate} />
     </div>
   );
 }

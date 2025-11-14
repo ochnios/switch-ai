@@ -8,11 +8,6 @@ import type {
   ApiKeyExistsDto,
   ModelDto,
   ModelsListDto,
-  MessageDto,
-  PaginatedMessagesDto,
-  SendMessageCommand,
-  CreateConversationFromMessageCommand,
-  ConversationWithMessagesDto,
   CreateBranchCommand,
 } from "@/types";
 
@@ -25,8 +20,6 @@ interface UIFlags {
   isDeletingConversation: string | null; // ID of conversation being deleted
   isLoadingApiKey: boolean;
   isLoadingModels: boolean;
-  isLoadingMessages: boolean;
-  isSendingMessage: boolean;
   isBranching: boolean;
 }
 
@@ -36,9 +29,6 @@ interface AppState {
 
   // Conversations list (first 50, sorted newest first)
   conversationsList: ConversationDto[];
-
-  // Messages cache per conversation ID
-  messagesCache: Record<string, MessageDto[]>;
 
   // API key status
   apiKeyExists: boolean;
@@ -75,12 +65,6 @@ interface AppActions {
   // Fetch conversations list
   fetchConversations: () => Promise<void>;
 
-  // Fetch messages for a conversation
-  fetchMessages: (conversationId: string) => Promise<void>;
-
-  // Send message (handles both new and existing conversations)
-  sendMessage: (cmd: SendMessageCommand | CreateConversationFromMessageCommand) => Promise<void>;
-
   // Create branch from a message
   createBranch: (conversationId: string, messageId: string, type: "full" | "summary") => Promise<void>;
 
@@ -89,6 +73,9 @@ interface AppActions {
 
   // Set last used model
   setLastUsedModel: (modelId: string) => void;
+
+  // Add conversation to list (used by hooks when creating new conversations)
+  addConversationToList: (conversation: ConversationDto) => void;
 
   // Delete conversation
   deleteConversation: (id: string) => Promise<void>;
@@ -109,7 +96,6 @@ export const useAppStore = create<AppStore>()(
       // Initial state
       activeConversationId: null,
       conversationsList: [],
-      messagesCache: {},
       apiKeyExists: false,
       modelsList: [],
       lastUsedModel: null,
@@ -118,8 +104,6 @@ export const useAppStore = create<AppStore>()(
         isDeletingConversation: null,
         isLoadingApiKey: false,
         isLoadingModels: false,
-        isLoadingMessages: false,
-        isSendingMessage: false,
         isBranching: false,
       },
       conversationsError: null,
@@ -289,174 +273,10 @@ export const useAppStore = create<AppStore>()(
         }
       },
 
-      fetchMessages: async (conversationId: string) => {
+      addConversationToList: (conversation: ConversationDto) => {
         set({
-          uiFlags: { ...get().uiFlags, isLoadingMessages: true },
+          conversationsList: [conversation, ...get().conversationsList],
         });
-
-        try {
-          const response = await fetch(`/api/conversations/${conversationId}/messages?page=1&pageSize=50`);
-
-          if (!response.ok) {
-            const error: ErrorResponseDto = await response.json();
-            throw new Error(error.message);
-          }
-
-          const data: PaginatedMessagesDto = await response.json();
-
-          set({
-            messagesCache: {
-              ...get().messagesCache,
-              [conversationId]: data.data,
-            },
-            uiFlags: { ...get().uiFlags, isLoadingMessages: false },
-          });
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : "Failed to load messages";
-
-          set({
-            uiFlags: { ...get().uiFlags, isLoadingMessages: false },
-          });
-
-          toast.error(errorMessage);
-        }
-      },
-
-      sendMessage: async (cmd: SendMessageCommand | CreateConversationFromMessageCommand) => {
-        const { activeConversationId, messagesCache } = get();
-
-        set({
-          uiFlags: { ...get().uiFlags, isSendingMessage: true },
-        });
-
-        // Optimistic update: Add user message and loading indicator
-        const tempUserId = `temp-user-${Date.now()}`;
-
-        const tempUserMessage: MessageDto = {
-          id: tempUserId,
-          role: "user",
-          content: cmd.content,
-          created_at: new Date().toISOString(),
-          model_name: null,
-          prompt_tokens: null,
-          completion_tokens: null,
-        };
-
-        if (activeConversationId) {
-          // Add optimistic messages to existing conversation
-          set({
-            messagesCache: {
-              ...messagesCache,
-              [activeConversationId]: [...(messagesCache[activeConversationId] || []), tempUserMessage],
-            },
-          });
-        }
-
-        try {
-          if (activeConversationId === null) {
-            // Create new conversation
-            const response = await fetch("/api/conversations", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(cmd),
-            });
-
-            if (!response.ok) {
-              const error: ErrorResponseDto = await response.json();
-              throw new Error(error.message);
-            }
-
-            const data: ConversationWithMessagesDto = await response.json();
-
-            // Update conversations list
-            set({
-              conversationsList: [data.conversation, ...get().conversationsList],
-              messagesCache: {
-                ...get().messagesCache,
-                [data.conversation.id]: data.messages,
-              },
-              uiFlags: { ...get().uiFlags, isSendingMessage: false },
-            });
-
-            // Save last used model
-            get().setLastUsedModel(cmd.model);
-
-            // Navigate to new conversation
-            get().setActiveConversation(data.conversation.id);
-          } else {
-            // Send message to existing conversation
-            const response = await fetch(`/api/conversations/${activeConversationId}/messages`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(cmd),
-            });
-
-            if (!response.ok) {
-              const error: ErrorResponseDto = await response.json();
-              // Check if it's a message send error (402, 502)
-              if (response.status === 402 || response.status === 502) {
-                // Remove loading, add error message to chat
-                const errorMessageId = `error-${Date.now()}`;
-                const currentMessages = messagesCache[activeConversationId] || [];
-                const messagesWithoutTemp = currentMessages.filter((msg) => msg.id !== tempUserId);
-
-                set({
-                  messagesCache: {
-                    ...messagesCache,
-                    [activeConversationId]: messagesWithoutTemp,
-                  },
-                  uiFlags: { ...get().uiFlags, isSendingMessage: false },
-                });
-
-                throw { isMessageError: true, id: errorMessageId, message: error.message };
-              }
-              throw new Error(error.message);
-            }
-
-            const data: MessageDto[] = await response.json();
-
-            // Replace temp messages with real ones
-            const currentMessages = messagesCache[activeConversationId] || [];
-            const messagesWithoutTemp = currentMessages.filter((msg) => msg.id !== tempUserId);
-
-            set({
-              messagesCache: {
-                ...messagesCache,
-                [activeConversationId]: [...messagesWithoutTemp, ...data],
-              },
-              uiFlags: { ...get().uiFlags, isSendingMessage: false },
-            });
-
-            // Save last used model
-            get().setLastUsedModel(cmd.model);
-          }
-        } catch (error: unknown) {
-          // Handle message send errors (402, 502) vs other errors
-          if (typeof error === "object" && error !== null && "isMessageError" in error) {
-            // Error already handled above - message already removed from cache
-          } else {
-            // Remove optimistic update on error
-            if (activeConversationId) {
-              const currentMessages = messagesCache[activeConversationId] || [];
-              const messagesWithoutTemp = currentMessages.filter((msg) => msg.id !== tempUserId);
-
-              set({
-                messagesCache: {
-                  ...messagesCache,
-                  [activeConversationId]: messagesWithoutTemp,
-                },
-                uiFlags: { ...get().uiFlags, isSendingMessage: false },
-              });
-            } else {
-              set({
-                uiFlags: { ...get().uiFlags, isSendingMessage: false },
-              });
-            }
-
-            const errorMessage = error instanceof Error ? error.message : "Failed to send message";
-            toast.error(errorMessage);
-          }
-        }
       },
 
       createBranch: async (conversationId: string, messageId: string, type: "full" | "summary") => {
@@ -556,7 +376,6 @@ export const useAppStore = create<AppStore>()(
       // apiKeyExists should be fetched fresh on each page load
       // isInitialized is session-based (in-memory only) - resets on page reload
       // uiFlags are transient state
-      // messagesCache is fetched on demand
       partialize: (state) => ({
         conversationsList: state.conversationsList,
         modelsList: state.modelsList,

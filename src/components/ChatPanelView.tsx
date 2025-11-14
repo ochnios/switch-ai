@@ -1,8 +1,9 @@
-import { useEffect } from "react";
 import { MessageList } from "./MessageList";
 import { Composer } from "./Composer";
 import { ChatContainer } from "./ChatContainer";
-import { useAppStore } from "@/stores/useAppStore";
+import { useConversationMessages } from "./hooks/useConversationMessages";
+import { useSendMessage } from "./hooks/useSendMessage";
+import { useTokenCounter } from "./hooks/useTokenCounter";
 
 interface ChatPanelViewProps {
   conversationId: string | null;
@@ -12,27 +13,33 @@ interface ChatPanelViewProps {
  * ChatPanelView - Main chat panel view component
  *
  * Responsibilities:
- * - Fetches messages for the conversation on mount
+ * - Manages messages state for the active conversation (local state)
  * - Orchestrates MessageList and Composer components
+ * - Handles message sending via hooks
  * - Handles loading and error states
  *
  * Note: Active conversation ID is synced by the store's syncFromUrl() method,
  * not by this component, to avoid infinite navigation loops.
  */
 export function ChatPanelView({ conversationId }: ChatPanelViewProps) {
-  const fetchMessages = useAppStore((state) => state.fetchMessages);
+  // Local messages state for the active conversation
+  const { messages, isLoading, addMessages, replaceMessages, removeMessage } = useConversationMessages(conversationId);
 
-  // Fetch messages for the conversation on mount or when conversationId changes
-  useEffect(() => {
-    if (conversationId) {
-      fetchMessages(conversationId);
-    }
-  }, [conversationId, fetchMessages]);
+  // Send message hook with optimistic updates
+  const { sendMessage, isSending } = useSendMessage({
+    conversationId,
+    onMessagesUpdate: replaceMessages,
+    onMessageAdd: (message) => addMessages([message]),
+    onMessageRemove: removeMessage,
+  });
+
+  // Calculate total tokens from messages
+  const totalTokens = useTokenCounter(messages);
 
   return (
     <ChatContainer>
-      <MessageList conversationId={conversationId} />
-      <Composer />
+      <MessageList messages={messages} isLoading={isLoading} isSending={isSending} conversationId={conversationId} />
+      <Composer onSendMessage={sendMessage} isSending={isSending} totalTokens={totalTokens} />
     </ChatContainer>
   );
 }
