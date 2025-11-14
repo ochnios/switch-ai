@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, Settings, Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -16,7 +16,12 @@ import { useUrlSync } from "./hooks/useUrlSync";
  */
 export function Header() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { apiKeyExists, uiFlags } = useAppStore();
+  const { apiKeyExists, uiFlags, initializeApp } = useAppStore();
+
+  // Initialize app on mount (fetch API key, models, conversations)
+  useEffect(() => {
+    initializeApp();
+  }, [initializeApp]);
 
   // Keep store synced with current URL
   useUrlSync();

@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useAppStore } from "@/stores/useAppStore";
 import { useUrlSync } from "./hooks/useUrlSync";
 import { SettingsButton } from "./SettingsButton";
@@ -26,7 +25,6 @@ export function ConversationSidebar({ onNavigate }: ConversationSidebarProps) {
     activeConversationId,
     uiFlags,
     conversationsError,
-    initializeApp,
     fetchConversations,
     setActiveConversation,
     deleteConversation,
@@ -34,11 +32,6 @@ export function ConversationSidebar({ onNavigate }: ConversationSidebarProps) {
 
   // Keep store synced with current URL
   useUrlSync();
-
-  // Initialize app on mount (fetch API key, models, conversations)
-  useEffect(() => {
-    initializeApp();
-  }, [initializeApp]);
 
   const handleSelectConversation = (id: string) => {
     setActiveConversation(id);

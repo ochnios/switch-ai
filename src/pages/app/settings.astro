@@ -5,7 +5,7 @@ import { SettingsView } from "@/components/SettingsView";
 ---
 
 <AppLayout title="Settings - switch-ai">
-  <ConversationSidebar slot="sidebar" client:only="react" transition:persist="sidebar-content" />
+  <ConversationSidebar slot="sidebar" client:load transition:persist />
 
   <div slot="main" class="h-full overflow-auto">
     <SettingsView client:only="react" />

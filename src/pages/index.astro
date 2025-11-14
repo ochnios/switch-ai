@@ -4,7 +4,7 @@ import AppLayout from "@/layouts/AppLayout.astro";
 ---
 
 <AppLayout title="switch-ai - Chat">
-  <ConversationSidebar slot="sidebar" client:only="react" />
+  <ConversationSidebar slot="sidebar" client:load transition:persist />
 
   <div slot="main" class="flex h-full items-center justify-center p-8">
     <div class="text-center">
