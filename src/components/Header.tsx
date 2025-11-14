@@ -37,6 +37,17 @@ export function Header() {
     }
   };
 
+  const handleHomeClick = () => {
+    // Navigate to home page using View Transitions
+    if (typeof window !== "undefined" && "startViewTransition" in document) {
+      import("astro:transitions/client").then(({ navigate }) => {
+        navigate("/");
+      });
+    } else {
+      window.location.href = "/";
+    }
+  };
+
   return (
     <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4">
       {/* Mobile hamburger menu */}
@@ -52,7 +63,14 @@ export function Header() {
           </SheetContent>
         </Sheet>
 
-        <h1 className="text-lg font-semibold">switch-ai</h1>
+        <Button
+          variant="ghost"
+          className="h-auto p-0 text-lg font-semibold hover:bg-transparent"
+          onClick={handleHomeClick}
+          aria-label="Go to home page"
+        >
+          switch-ai
+        </Button>
       </div>
 
       {/* Right side: API key status + Settings */}

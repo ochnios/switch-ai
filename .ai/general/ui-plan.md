@@ -8,6 +8,51 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 
 ## 2. View List
 
+### View: Landing Page
+
+* **Path**: `/` (root)
+* **Main Goal**: present the project's main goals and value proposition in an attractive, simple, yet informative way. Introduce users to the core problems switch-ai solves and its key features. Guide users to get started (no API key checking - users will be prompted to configure API key when needed in the app).
+* **Key Information**: 
+  * Hero section with main value proposition
+  * Two core problems addressed (model switching flexibility, conversation branching)
+  * Key features highlight (per-message model selection, conversation branching with full history/summary, BYOK)
+  * Single call-to-action button (Get Started)
+* **Key Components**: 
+  * Hero section with headline and subtitle
+  * Problem statement section (two main problems)
+  * Features showcase section (key features with brief descriptions)
+  * CTA button (Get Started)
+  * Simple, clean layout with good spacing and typography
+* **Content Structure**:
+  * **Hero**: "switch-ai" title, tagline: "Chat with multiple AI models. Switch models per message. Branch conversations effortlessly."
+  * **Problems Section**: 
+    * Problem 1: "Lack of flexibility in model selection" - Different AI models specialize in different tasks. Switching between them requires multiple browser windows and manual context copying.
+    * Problem 2: "Conversation linearity" - Exploring alternative ideas or testing different scenarios is difficult. Users must either clutter the main thread or start from scratch, losing context.
+  * **Features Section**:
+    * Feature 1: "Per-message model switching" - Select the perfect AI model for each message. Leverage specialized models for different tasks without leaving your conversation.
+    * Feature 2: "Conversation branching" - Create independent conversation threads from any point. Choose between full history copy or intelligent summary-based branching.
+    * Feature 3: "BYOK (Bring Your Own Key)" - Use your own OpenRouter API key. Full control, secure server-side encryption.
+  * **CTA Section**: 
+    * Primary CTA: "Get Started" (links to `/app/new`)
+* **UX / Accessibility / Security**: 
+  * Semantic HTML structure (header, main, sections)
+  * Clear heading hierarchy (h1, h2, h3)
+  * Accessible button labels and links
+  * Responsive design (mobile-friendly)
+  * Smooth transitions when navigating to app
+  * No API key checking on landing page (users will be prompted in-app when needed)
+* **Technical Implementation**:
+  * Static Astro page (`src/pages/index.astro`)
+  * Uses Layout.astro (not AppLayout.astro - no sidebar/header needed)
+  * React component (client:load)
+  * Simple, centered layout with max-width container (max-w-4xl)
+  * Uses Tailwind classes for styling
+  * Shadcn/ui Button component for CTA
+  * View Transitions API for smooth navigation
+  * No API key status checking or Zustand store usage
+
+***
+
 ### View: Login / Registration Screen
 
 * **Path**: `/auth` (or Supabase-managed)
@@ -33,8 +78,8 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 * **Path**: part of the layout (`/app#sidebar`)
 * **Main Goal**: browsing and managing conversations (new, select, delete).
 * **Key Information**: list (first 50) of conversations sorted newest→oldest, titles, creation time, trash icon (two-step confirmation), "New Conversation" button (dimmed when activeConversationId === null).
-* **Key Components**: list item with accessible buttons (select, delete/confirm), search/filter (optional in MVP), sticky "New Chat" CTA.
-* **UX / Accessibility / Security**: aria-selected for the active conversation, two-step delete confirmation (icon changes) instead of a modal (as per decision).
+* **Key Components**: list item with accessible buttons (select, delete/confirm), search/filter (optional in MVP), sticky "New Chat" CTA with tooltip when disabled (missing API key).
+* **UX / Accessibility / Security**: aria-selected for the active conversation, two-step delete confirmation (icon changes) instead of a modal (as per decision). New Conversation button shows tooltip with configuration instructions when disabled due to missing API key.
 
 ***
 

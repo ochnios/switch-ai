@@ -1,15 +1,10 @@
 ---
-import { ConversationSidebar } from "@/components/ConversationSidebar";
-import AppLayout from "@/layouts/AppLayout.astro";
+import Layout from "@/layouts/Layout.astro";
+import { LandingPage } from "@/components/LandingPage";
 ---
 
-<AppLayout title="switch-ai - Chat">
-  <ConversationSidebar slot="sidebar" client:load transition:persist />
-
-  <div slot="main" class="flex h-full items-center justify-center p-8">
-    <div class="text-center">
-      <h1 class="text-2xl font-semibold text-foreground">Welcome to switch-ai</h1>
-      <p class="mt-2 text-sm text-muted-foreground">Select a conversation from the sidebar or start a new one</p>
-    </div>
-  </div>
-</AppLayout>
+<Layout title="switch-ai - Chat with Multiple AI Models">
+  <main role="main">
+    <LandingPage client:load />
+  </main>
+</Layout>

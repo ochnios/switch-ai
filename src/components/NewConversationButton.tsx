@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAppStore } from "@/stores/useAppStore";
 
 interface NewConversationButtonProps {
@@ -55,7 +56,7 @@ export function NewConversationButton({ onNavigate }: NewConversationButtonProps
   const hasNoApiKey = !uiFlags.isLoadingApiKey && !apiKeyExists;
   const isDisabled = isOnNewPage || hasNoApiKey;
 
-  return (
+  const button = (
     <Button
       variant="default"
       size="default"
@@ -63,10 +64,26 @@ export function NewConversationButton({ onNavigate }: NewConversationButtonProps
       disabled={isDisabled}
       className="w-full justify-start gap-2"
       aria-label={hasNoApiKey ? "New conversation (API key required)" : "New conversation"}
-      title={hasNoApiKey ? "Please configure your API key in settings first" : undefined}
     >
       <Plus className="h-4 w-4" />
       <span>New Conversation</span>
     </Button>
   );
+
+  // Wrap button in tooltip when disabled due to missing API key
+  // Note: Tooltips don't work on disabled buttons, so we wrap it in a span
+  if (hasNoApiKey) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="w-full inline-block">{button}</span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Configure your api key to start new conversation</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return button;
 }
