@@ -7,6 +7,7 @@
 * TypeScript 5 for static code typing and better IDE support
 * Tailwind 4 allows for convenient application styling
 * Shadcn/ui provides a library of available React components on which we will base the UI
+* react-markdown with remark-gfm and rehype-highlight for rendering AI responses with GitHub Flavored Markdown and syntax highlighting
 
 ## Backend - Supabase as a comprehensive backend solution:
 
