@@ -11,12 +11,12 @@ When the conversation `id` is not present (e.g., in a new chat), this view handl
 The view will be rendered by an Astro page component that dynamically loads a React component.
 
 * **Path:** `/app/conversations/[id]` (for existing conversations)
-* **Path:** `/app/new` (for new conversations)
+* **Path:** `/app/conversations/new` (for new conversations)
 
 **Routing Behavior:**
 
-* Clicking "New Conversation" button in sidebar → navigates to `/app/new`
-* `/app/new` route → on mount sets `activeConversationId = null` in Zustand store
+* Clicking "New Conversation" button in sidebar → navigates to `/app/conversations/new`
+* `/app/conversations/new` route → on mount sets `activeConversationId = null` in Zustand store
 * After first message is sent → navigates to `/app/conversations/[newId]`
 * This keeps URL and global state synchronized
 
@@ -254,7 +254,7 @@ All API calls are handled by Zustand store actions using `fetch`.
 
 * **User loads page `/app/conversations/[id]`:**
   * Zustand `fetchMessages(id)` action is called. `MessageList` shows `Skeleton`. After loading, the list populates from `messagesCache[id]`.
-* **User loads page `/app/new`:**
+* **User loads page `/app/conversations/new`:**
   * `activeConversationId` is set to `null`. Message list is empty. `Composer` is active.
 * **User selects model in `ModelSelector`:**
   * Local component state is updated. Model will be used for next message send.
@@ -331,10 +331,10 @@ Error handling follows a consistent strategy:
    * Create `MessageList` that retrieves messages from Zustand `messagesCache` and maps to `MessageItem`. Handles `uiFlags.isLoadingMessages` to show skeleton.
 
 6. **Assemble `ChatPanelView`:**
-   * Create Astro page for `/app/conversations/[id]` and `/app/new`.
+   * Create Astro page for `/app/conversations/[id]` and `/app/conversations/new`.
    * Create React component that retrieves `id` from URL params.
    * On mount, if `id` exists, call Zustand `fetchMessages(id)` and `setActiveConversation(id)`.
-   * If route is `/app/new`, call `setActiveConversation(null)`.
+   * If route is `/app/conversations/new`, call `setActiveConversation(null)`.
    * Render `MessageList` and `Composer` (both get state from Zustand, no props needed).
 
 7. **Implement NonBlockingAlert System:**

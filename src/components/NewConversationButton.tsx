@@ -14,9 +14,9 @@ interface NewConversationButtonProps {
 /**
  * NewConversationButton - Creates a new conversation
  *
- * Clicking sets activeConversationId to null and navigates to /app/new.
+ * Clicking sets activeConversationId to null and navigates to /app/conversations/new.
  * Button is disabled when:
- * - Already on the /app/new page
+ * - Already on the /app/conversations/new page
  * - No API key exists (confirmed after loading - apiKeyExists is false AND not loading)
  */
 export function NewConversationButton({ onNavigate }: NewConversationButtonProps) {
@@ -47,8 +47,8 @@ export function NewConversationButton({ onNavigate }: NewConversationButtonProps
     onNavigate?.();
   };
 
-  // Check if we're on the /app/new page by checking the actual URL
-  const isOnNewPage = currentPath === "/app/new";
+  // Check if we're on the /app/conversations/new page by checking the actual URL
+  const isOnNewPage = currentPath === "/app/conversations/new";
 
   // Disable if:
   // 1. Already on new conversation page (check URL)

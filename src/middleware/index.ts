@@ -78,16 +78,16 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
     }
   }
 
-  // Redirect authenticated users from auth-only routes to /app/new
+  // Redirect authenticated users from auth-only routes to /app/conversations/new
   if (AUTH_ONLY_ROUTES.some((route) => pathname === route)) {
     if (user) {
-      return redirect("/app/new", 302);
+      return redirect("/app/conversations/new", 302);
     }
   }
 
-  // Redirect authenticated users from landing page to /app/new
+  // Redirect authenticated users from landing page to /app/conversations/new
   if (pathname === "/" && user) {
-    return redirect("/app/new", 302);
+    return redirect("/app/conversations/new", 302);
   }
 
   // Protect /app/* routes - redirect to login with redirect parameter
