@@ -49,11 +49,6 @@ Your summary will be used to provide context for continuing the conversation in 
 Now summarize the following conversation:`,
     },
 
-    openRouter: {
-      baseUrl: "https://openrouter.ai/api/v1",
-      timeoutMs: 60000,
-    },
-
     parameters: {
       temperature: {
         min: 0.0,

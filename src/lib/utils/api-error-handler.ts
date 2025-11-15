@@ -115,4 +115,3 @@ export function handleApiError(error: unknown, logger: Logger, context?: Record<
     headers: { "Content-Type": "application/json" },
   });
 }
-

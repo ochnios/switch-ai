@@ -13,6 +13,7 @@ import {
   OpenRouterValidationError,
 } from "../errors";
 import { Logger } from "../logger";
+import { chatCompletionParamsSchema } from "../schemas/openrouter.schema";
 import { ApiKeyService } from "./api-key.service";
 
 const logger = new Logger("OpenRouterService");
@@ -114,10 +115,22 @@ export class OpenRouterService {
    * @param params - Chat completion parameters
    * @returns The assistant's response with token usage
    * @throws ApiKeyNotFoundError if API key is not configured
+   * @throws OpenRouterValidationError if parameters are invalid
    * @throws OpenRouterError if OpenRouter API call fails
    */
   async createChatCompletion(params: ChatCompletionParams): Promise<ChatCompletionResponse> {
     try {
+      // Validate input parameters
+      const validation = chatCompletionParamsSchema.safeParse(params);
+      if (!validation.success) {
+        const errorMessages = validation.error.errors.map((err) => `${err.path.join(".")}: ${err.message}`).join("; ");
+        logger.warn("Invalid chat completion parameters", {
+          userId: params.userId,
+          errors: errorMessages,
+        });
+        throw new OpenRouterValidationError(`Invalid parameters: ${errorMessages}`);
+      }
+
       // Retrieve and decrypt the user's API key
       const apiKey = await this.getUserApiKey(params.userId);
 
@@ -146,6 +159,14 @@ export class OpenRouterService {
       const messageContent = response.choices[0]?.message?.content;
       const content = typeof messageContent === "string" ? messageContent : "";
       const responseModel = response.model || params.model;
+      if (!content) {
+        logger.warn("Empty response from OpenRouter", {
+          userId: params.userId,
+          model: responseModel,
+        });
+        throw new OpenRouterServerError("OpenRouter API returned empty response content.");
+      }
+
       const usage = {
         prompt_tokens: response.usage?.promptTokens || 0,
         completion_tokens: response.usage?.completionTokens || 0,
