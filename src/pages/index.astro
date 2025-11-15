@@ -1,8 +1,10 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
+import Layout from "@/layouts/Layout.astro";
+import { LandingPage } from "@/components/LandingPage";
 ---
 
-<Layout>
-  <Welcome />
+<Layout title="switch-ai - Chat with Multiple AI Models">
+  <main role="main">
+    <LandingPage client:load />
+  </main>
 </Layout>

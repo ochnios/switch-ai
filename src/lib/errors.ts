@@ -49,4 +49,3 @@ export class ApiKeyEncryptionError extends OpenRouterError {
     this.name = "ApiKeyEncryptionError";
   }
 }
-

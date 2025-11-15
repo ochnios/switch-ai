@@ -8,6 +8,51 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 
 ## 2. View List
 
+### View: Landing Page
+
+* **Path**: `/` (root)
+* **Main Goal**: present the project's main goals and value proposition in an attractive, simple, yet informative way. Introduce users to the core problems switch-ai solves and its key features. Guide users to get started (no API key checking - users will be prompted to configure API key when needed in the app).
+* **Key Information**: 
+  * Hero section with main value proposition
+  * Two core problems addressed (model switching flexibility, conversation branching)
+  * Key features highlight (per-message model selection, conversation branching with full history/summary, BYOK)
+  * Single call-to-action button (Get Started)
+* **Key Components**: 
+  * Hero section with headline and subtitle
+  * Problem statement section (two main problems)
+  * Features showcase section (key features with brief descriptions)
+  * CTA button (Get Started)
+  * Simple, clean layout with good spacing and typography
+* **Content Structure**:
+  * **Hero**: "switch-ai" title, tagline: "Chat with multiple AI models. Switch models per message. Branch conversations effortlessly."
+  * **Problems Section**: 
+    * Problem 1: "Lack of flexibility in model selection" - Different AI models specialize in different tasks. Switching between them requires multiple browser windows and manual context copying.
+    * Problem 2: "Conversation linearity" - Exploring alternative ideas or testing different scenarios is difficult. Users must either clutter the main thread or start from scratch, losing context.
+  * **Features Section**:
+    * Feature 1: "Per-message model switching" - Select the perfect AI model for each message. Leverage specialized models for different tasks without leaving your conversation.
+    * Feature 2: "Conversation branching" - Create independent conversation threads from any point. Choose between full history copy or intelligent summary-based branching.
+    * Feature 3: "BYOK (Bring Your Own Key)" - Use your own OpenRouter API key. Full control, secure server-side encryption.
+  * **CTA Section**: 
+    * Primary CTA: "Get Started" (links to `/app/new`)
+* **UX / Accessibility / Security**: 
+  * Semantic HTML structure (header, main, sections)
+  * Clear heading hierarchy (h1, h2, h3)
+  * Accessible button labels and links
+  * Responsive design (mobile-friendly)
+  * Smooth transitions when navigating to app
+  * No API key checking on landing page (users will be prompted in-app when needed)
+* **Technical Implementation**:
+  * Static Astro page (`src/pages/index.astro`)
+  * Uses Layout.astro (not AppLayout.astro - no sidebar/header needed)
+  * React component (client:load)
+  * Simple, centered layout with max-width container (max-w-4xl)
+  * Uses Tailwind classes for styling
+  * Shadcn/ui Button component for CTA
+  * View Transitions API for smooth navigation
+  * No API key status checking or Zustand store usage
+
+***
+
 ### View: Login / Registration Screen
 
 * **Path**: `/auth` (or Supabase-managed)
@@ -33,8 +78,8 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 * **Path**: part of the layout (`/app#sidebar`)
 * **Main Goal**: browsing and managing conversations (new, select, delete).
 * **Key Information**: list (first 50) of conversations sorted newest→oldest, titles, creation time, trash icon (two-step confirmation), "New Conversation" button (dimmed when activeConversationId === null).
-* **Key Components**: list item with accessible buttons (select, delete/confirm), search/filter (optional in MVP), sticky "New Chat" CTA.
-* **UX / Accessibility / Security**: keyboard navigation (arrow keys), aria-selected for the active conversation, two-step delete confirmation (icon changes) instead of a modal (as per decision).
+* **Key Components**: list item with accessible buttons (select, delete/confirm), search/filter (optional in MVP), sticky "New Chat" CTA with tooltip when disabled (missing API key).
+* **UX / Accessibility / Security**: aria-selected for the active conversation, two-step delete confirmation (icon changes) instead of a modal (as per decision). New Conversation button shows tooltip with configuration instructions when disabled due to missing API key.
 
 ***
 
@@ -45,7 +90,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 * **Key Information**: message list (GET .../messages — first 50 oldest), model\_name under each response, token counter (prompt+completion from the last assistant message), loading indicator (skeleton) when awaiting response, non-blocking alert with API error content (US-013).
 * **Key Components**: MessageList (role=log), MessageItem (user/assistant/error), Branch action (icon + dropdown menu with two options: "Create branch with full history" and "Create branch with summary"), ModelBadge (under response), Composer (input, model selector, send button, token counter).
 * **Branching UX**: Each MessageItem displays a branch icon (e.g., git-branch icon). Clicking it reveals a dropdown menu with two options: (1) "Create branch with full history" — copies all messages up to this point; (2) "Create branch with summary" — generates a summary and starts a new thread. Selecting an option immediately calls `POST /conversations/{id}/messages/{id}/branch` with the chosen type (`full` or `summary`). On success, the UI switches `activeConversationId` to the new branch and navigates to it. On error, a non-blocking alert is shown.
-* **UX / Accessibility / Security**: aria-live region for new messages, disabled input + button while waiting (but UI does not block other actions), distinct colors/roles for error messages, readable contrasts, do not hold API key in JS runtime. Branch dropdown menu is accessible via keyboard (aria-haspopup, aria-expanded), with clear labels for each option.
+* **UX / Accessibility / Security**: aria-live region for new messages, disabled input + button while waiting (but UI does not block other actions), distinct colors/roles for error messages, readable contrasts, do not hold API key in JS runtime.
 
 ***
 
@@ -61,7 +106,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 
 ### View: Settings / API Key Onboarding
 
-* **Path**: `/app/settings` (modal)
+* **Path**: `/app/settings` (page)
 * **Main Goal**: BYOK management — entering, removing, checking existence (GET /api/api-key; PUT /api/api-key; DELETE /api/api-key).
 * **Key Information**: API key input, validation status (existence check), BYOK instructions, save button, info about server-side encryption.
 * **Key Components**: secure input (mask), status badge, explainers (why we don't see the key).
@@ -85,7 +130,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 
 1. User logs in (`/auth`) → on success, proceeds to `/app`.
 2. App load: fetch `/api/models` once, fetch `/conversations` (first 50). Check `/api/api-key`.
-   * If API key `exists: false` → lock the chat panel and show modal/onboarding with a link to settings.
+   * If API key `exists: false` → lock the chat panel and show modal with a link to settings.
 3. In the Sidebar, user clicks "New Conversation" or is already in the new chat view (activeConversationId === null).
 4. In the Composer, user selects a model from the Combobox (optionally uses search). The selected model is saved in localStorage as `lastUsedModel`.
 5. User types content → presses "Send" → UI sends `POST /conversations` (new conversation flow) with payload {content, model}.
@@ -97,23 +142,23 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 
 ## 4. Layout and Navigation Structure
 
-* **Global Header**: hamburger (mobile), profile/settings (opens settings modal/page), API key status (icon).
+* **Global Header**: hamburger (mobile), settings (opens settings page), API key status (icon).
 * **Sidebar (persistent)**: conversation list (select), "New Conversation" button (sticky), filter/search options (optional). Clicking an item → set `activeConversationId` and fetch messages.
 * **Main Panel**: dynamic; if `activeConversationId === null` → "New Chat", otherwise render history. Branching triggered inline on each MessageItem via branch icon + dropdown menu (no separate modal needed).
-* **Mobile Navigation**: hamburger toggles Sidebar as a Sheet (Shadcn/ui). All actions available via keyboard and screen reader.
+* **Mobile Navigation**: hamburger toggles Sidebar as a Sheet (Shadcn/ui).
 * **API Pipelines**: mutating operations (POST/PUT/DELETE) cause local state updates in Zustand and potential re-fetches (conversations list, messages) according to decisions in the plan.
 
 ***
 
 ## 5. Key Components
 
-1. **SidebarList** — conversation list with two-step delete; keyboard navigation; lazy highlight active.
+1. **SidebarList** — conversation list with two-step delete; lazy highlight active.
 2. **ChatPanel / MessageList** — rendering messages with role significance; aria-live for new messages; handling message error card.
 3. **MessageItem** — contains actions: branch icon with dropdown menu (two options: full history / summary), copy, show model badge; accessibility for action buttons.
 4. **BranchDropdown** — accessible dropdown menu (DropdownMenu from Shadcn/ui) with two options: "Create branch with full history" and "Create branch with summary". Clicking an option triggers `POST /conversations/{id}/messages/{id}/branch` with the selected type, shows loading state on the button, handles errors with non-blocking alert.
-5. **Composer** — textarea, Combobox model selector (searchable), Send button, Token counter, keyboard shortcuts.
+5. **Composer** — textarea, Combobox model selector (searchable), Send button, Token counter
 6. **ModelCombobox** — preloaded modelsList from /api/models; searchable; updates lastUsedModel in localStorage on send.
-7. **APIKeyOnboarding** — modal/section with secure input and explanatory text; calls PUT/GET/DELETE /api/api-key.
+7. **APIKeyOnboarding** — section with secure input and explanatory text; calls PUT/GET/DELETE /api/api-key.
 8. **NonBlockingAlert** — inline alert component for API errors (maps error payload to friendly message).
 9. **GlobalState (Zustand store)** — activeConversationId, conversationsList, messagesCache (per conversation), modelsList, lastUsedModel, uiFlags (loading states).
 
@@ -154,7 +199,7 @@ switch-ai is a chat application for LLM power-users, designed around a fixed, tw
 ## 8. UX, Accessibility, and Security Summary (Condensed)
 
 * **UX**: minimal clicks for power-user: last model preselected; keyboard shortcuts (Enter send); quick branch/confirm; few spinners; two-step delete instead of modal.
-* **Accessibility**: semantic HTML landmarks (nav, main), role=log/aria-live for new messages, accessible Combobox (aria-expanded, aria-activedescendant), focus management in dialogs, color contrast, keyboard navigation support (tabindex, arrow keys in lists).
+* **Accessibility**: semantic HTML landmarks (nav, main), role=log/aria-live for new messages, accessible Combobox (aria-expanded, aria-activedescendant), focus management in dialogs, color contrast.
 * **Security**: BYOK — key sent only to backend (PUT /api/api-key), not stored in frontend state or localStorage; all HTTP requests via HTTPS; auth via JWT (Bearer) in every request; UI does not log or display the key; message length limit (1-50k chars) and validation before sending; does not reveal server error details to user — shows API error content in a safe form, backend logs details.
 
 ***
@@ -189,7 +234,7 @@ The UI architecture directly maps to the API plan: every mutation and fetch has 
 2. **Losing context when exploring alternatives** → quick branching via dropdown menu on each message (full/summary options) allows for independent threads without losing history; no modal interruptions.
 3. **Unclear API errors** → inline, non-blocking alerts with suggested action (settings / retry).
 4. **Too many windows** → one, consistent view with the ability to copy/open branch in the same UI.
-5. **Mobility** → sidebar as Sheet, discreet CTAs, keyboard friendly.
+5. **Mobility** → sidebar as Sheet, discreet CTAs
 
 ***
 

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "sonner/dist/styles.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -20,6 +21,7 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --success: oklch(0.638 0.182 155.825);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -54,6 +56,7 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.696 0.17 162.48);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
@@ -92,6 +95,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -116,5 +120,60 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Cursor pointer for interactive elements */
+  button,
+  a,
+  [role="button"],
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  select,
+  label:has(input[type="checkbox"]),
+  label:has(input[type="radio"]) {
+    @apply cursor-pointer;
+  }
+
+  /* Disabled states should show not-allowed cursor */
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  [type="button"]:disabled,
+  [type="submit"]:disabled,
+  [type="reset"]:disabled,
+  select:disabled {
+    @apply cursor-not-allowed;
+  }
+
+  /* Auto-hiding scrollbar styles */
+  .scrollbar-auto-hide {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .scrollbar-auto-hide:hover {
+    scrollbar-color: oklch(var(--muted-foreground) / 0.2) transparent;
+  }
+
+  /* WebKit browsers (Chrome, Safari, Edge) */
+  .scrollbar-auto-hide::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-auto-hide::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-auto-hide::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 4px;
+  }
+
+  .scrollbar-auto-hide:hover::-webkit-scrollbar-thumb {
+    background-color: oklch(var(--muted-foreground) / 0.2);
+  }
+
+  .scrollbar-auto-hide::-webkit-scrollbar-thumb:hover {
+    background-color: oklch(var(--muted-foreground) / 0.3);
   }
 }

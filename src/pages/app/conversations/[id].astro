@@ -1,0 +1,12 @@
+---
+import AppLayout from "@/layouts/AppLayout.astro";
+import { ConversationSidebar } from "@/components/ConversationSidebar";
+import { ChatPanelView } from "@/components/ChatPanelView";
+
+const { id } = Astro.params;
+---
+
+<AppLayout title="Conversation - switch-ai">
+  <ConversationSidebar slot="sidebar" client:load transition:persist />
+  <ChatPanelView slot="main" conversationId={id ?? ""} client:only="react" />
+</AppLayout>
