@@ -106,23 +106,25 @@ export class ConversationService {
    * Retrieves a paginated list of conversations for the current user
    * Conversations are sorted by creation date in descending order
    *
+   * @param userId - The user's ID to filter conversations
    * @param page - Page number (1-indexed)
    * @param pageSize - Number of items per page
    * @returns Paginated conversations with metadata
    * @throws Error if query fails
    */
-  async getConversations(page: number, pageSize: number): Promise<PaginatedConversationsDto> {
+  async getConversations(userId: string, page: number, pageSize: number): Promise<PaginatedConversationsDto> {
     // Calculate offset for pagination
     const offset = (page - 1) * pageSize;
 
     // Execute queries in parallel for better performance
     const [countResult, dataResult] = await Promise.all([
-      // Get total count of conversations
-      this.supabase.from("conversations").select("id", { count: "exact", head: true }),
-      // Get paginated conversations
+      // Get total count of conversations for this user
+      this.supabase.from("conversations").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      // Get paginated conversations for this user
       this.supabase
         .from("conversations")
         .select("id, title, parent_conversation_id, created_at")
+        .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .range(offset, offset + pageSize - 1),
     ]);
@@ -149,17 +151,19 @@ export class ConversationService {
 
   /**
    * Retrieves a single conversation by its ID
-   * RLS policies ensure users can only access their own conversations
+   * Verifies the conversation belongs to the specified user
    *
    * @param conversationId - The conversation ID to retrieve
-   * @returns The conversation if found, null otherwise
+   * @param userId - The user's ID to verify ownership
+   * @returns The conversation if found and owned by user, null otherwise
    * @throws Error if query fails
    */
-  async getConversationById(conversationId: string): Promise<ConversationDto | null> {
+  async getConversationById(conversationId: string, userId: string): Promise<ConversationDto | null> {
     const { data, error } = await this.supabase
       .from("conversations")
       .select("id, title, parent_conversation_id, created_at")
       .eq("id", conversationId)
+      .eq("user_id", userId)
       .maybeSingle();
 
     if (error) {
@@ -172,18 +176,20 @@ export class ConversationService {
 
   /**
    * Deletes a conversation and all associated messages
-   * RLS policies ensure users can only delete their own conversations
+   * Verifies the conversation belongs to the specified user before deletion
    * Messages are automatically deleted via ON DELETE CASCADE
    *
    * @param conversationId - The conversation ID to delete
+   * @param userId - The user's ID to verify ownership
    * @returns true if conversation was deleted, false if not found or unauthorized
    * @throws Error if deletion fails
    */
-  async deleteConversation(conversationId: string): Promise<boolean> {
+  async deleteConversation(conversationId: string, userId: string): Promise<boolean> {
     const { error, count } = await this.supabase
       .from("conversations")
       .delete({ count: "exact" })
-      .eq("id", conversationId);
+      .eq("id", conversationId)
+      .eq("user_id", userId);
 
     if (error) {
       logger.error(new Error("Failed to delete conversation"), { conversationId, error });
@@ -197,13 +203,15 @@ export class ConversationService {
   /**
    * Creates a new conversation by branching from an existing message
    * Supports two modes: "full" (copies entire history) or "summary" (AI-generated summary)
+   * Verifies the message and conversation belong to the specified user
    *
    * @param messageId - The ID of the message to branch from
    * @param type - The branch type ("full" or "summary")
+   * @param userId - The user's ID to verify ownership
    * @returns The newly created conversation
    * @throws Error if message not found, unauthorized, or operation fails
    */
-  async createBranchFromMessage(messageId: string, type: BranchType): Promise<ConversationDto> {
+  async createBranchFromMessage(messageId: string, type: BranchType, userId: string): Promise<ConversationDto> {
     try {
       // Step 1: Verify message exists and get its conversation
       const { data: sourceMessage, error: messageError } = await this.supabase
@@ -221,19 +229,21 @@ export class ConversationService {
         throw new Error("Message not found");
       }
 
-      // Step 2: Get parent conversation details including user_id
+      // Step 2: Get parent conversation details and verify ownership
       const { data: parentConversation, error: conversationError } = await this.supabase
         .from("conversations")
         .select("id, title, branch_count, user_id")
         .eq("id", sourceMessage.conversation_id)
+        .eq("user_id", userId)
         .single();
 
       if (conversationError || !parentConversation) {
-        logger.error(new Error("Failed to fetch parent conversation"), {
+        logger.error(new Error("Failed to fetch parent conversation or access denied"), {
           conversationId: sourceMessage.conversation_id,
+          userId,
           error: conversationError,
         });
-        throw new Error("Failed to fetch parent conversation");
+        throw new Error("Failed to fetch parent conversation or access denied");
       }
 
       // Step 3: Increment branch count on parent conversation

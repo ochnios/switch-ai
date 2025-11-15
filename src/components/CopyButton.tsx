@@ -46,4 +46,3 @@ export function CopyButton({ content }: CopyButtonProps) {
     </Button>
   );
 }
-

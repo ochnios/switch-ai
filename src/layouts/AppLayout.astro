@@ -8,6 +8,9 @@ interface Props {
 }
 
 const { title = "switch-ai" } = Astro.props;
+
+// Route protection is handled by middleware (src/middleware/index.ts)
+// All /app/* routes require authentication and are protected server-side
 ---
 
 <Layout title={title}>
@@ -37,11 +40,3 @@ const { title = "switch-ai" } = Astro.props;
   <!-- Toast notifications -->
   <Toaster client:only="react" richColors position="top-right" />
 </Layout>
-
-<style>
-  /* Ensure the layout takes full viewport height */
-  :global(#app-root) {
-    height: 100vh;
-    overflow: hidden;
-  }
-</style>

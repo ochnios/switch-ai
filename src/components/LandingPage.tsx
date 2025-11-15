@@ -12,13 +12,13 @@ import { Button } from "@/components/ui/button";
  */
 export function LandingPage() {
   const handleGetStarted = () => {
-    // Navigate to app using View Transitions
+    // Navigate to sign-in page using View Transitions
     if (typeof window !== "undefined" && "startViewTransition" in document) {
       import("astro:transitions/client").then(({ navigate }) => {
-        navigate("/app/new");
+        navigate("/auth/login");
       });
     } else {
-      window.location.href = "/app/new";
+      window.location.href = "/auth/login";
     }
   };
 

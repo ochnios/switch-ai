@@ -1,9 +1,9 @@
 import type { APIRoute } from "astro";
 
-import { DEFAULT_USER_ID } from "../../db/supabase.client";
 import { Logger } from "../../lib/logger";
 import { OpenRouterService } from "../../lib/services/open-router.service";
 import { handleApiError } from "../../lib/utils/api-error-handler";
+import { getUserIdOrUnauthorized } from "../../lib/utils/auth-helpers";
 import type { ModelsListDto } from "../../types";
 
 export const prerender = false;
@@ -17,7 +17,8 @@ const logger = new Logger("GET /api/models");
  */
 export const GET: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
-  const userId = DEFAULT_USER_ID;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   try {
     // Fetch models using service

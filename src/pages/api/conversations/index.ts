@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro";
 
-import { DEFAULT_USER_ID } from "../../../db/supabase.client";
 import { Logger } from "../../../lib/logger";
 import { paginationQuerySchema } from "../../../lib/schemas/common.schema";
 import { sendMessageCommandSchema } from "../../../lib/schemas/messages.schema";
 import { ConversationService } from "../../../lib/services/conversation.service";
 import { MessageService } from "../../../lib/services/message.service";
 import { handleApiError } from "../../../lib/utils/api-error-handler";
+import { getUserIdOrUnauthorized } from "../../../lib/utils/auth-helpers";
 import type { ConversationWithMessagesDto, ErrorResponseDto, PaginatedConversationsDto } from "../../../types";
 
 export const prerender = false;
@@ -20,6 +20,8 @@ const postLogger = new Logger("POST /api/conversations");
  */
 export const GET: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   try {
     // Parse and validate query parameters
@@ -48,9 +50,9 @@ export const GET: APIRoute = async (context) => {
 
     const { page, pageSize } = queryValidation.data;
 
-    // Fetch conversations
+    // Fetch conversations for the current user
     const conversationService = new ConversationService(supabase);
-    const result: PaginatedConversationsDto = await conversationService.getConversations(page, pageSize);
+    const result: PaginatedConversationsDto = await conversationService.getConversations(userId, page, pageSize);
 
     return new Response(JSON.stringify(result), {
       status: 200,
@@ -75,7 +77,8 @@ export const GET: APIRoute = async (context) => {
  */
 export const POST: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
-  const userId = DEFAULT_USER_ID;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   try {
     // Parse and validate request body (CreateConversationFromMessageCommand has same structure as SendMessageCommand)
@@ -125,14 +128,10 @@ export const POST: APIRoute = async (context) => {
       const messageService = new MessageService(supabase);
       const messages = await messageService.sendMessage(conversationId, content, model, userId);
 
-      // Fetch the created conversation to return full details
-      const { data: conversation, error: conversationError } = await supabase
-        .from("conversations")
-        .select("id, title, parent_conversation_id, created_at")
-        .eq("id", conversationId)
-        .single();
+      // Fetch the created conversation to return full details (verify ownership)
+      const conversation = await conversationService.getConversationById(conversationId, userId);
 
-      if (conversationError || !conversation) {
+      if (!conversation) {
         postLogger.error(new Error("Failed to fetch conversation"), { conversationId, userId });
         const errorResponse: ErrorResponseDto = {
           statusCode: 500,

@@ -3,6 +3,7 @@ import type { APIRoute } from "astro";
 import { Logger } from "../../../lib/logger";
 import { uuidParamSchema } from "../../../lib/schemas/common.schema";
 import { ConversationService } from "../../../lib/services/conversation.service";
+import { getUserIdOrUnauthorized } from "../../../lib/utils/auth-helpers";
 import type { ConversationDto, ErrorResponseDto } from "../../../types";
 
 export const prerender = false;
@@ -16,6 +17,8 @@ const deleteLogger = new Logger("DELETE /api/conversations/{id}");
  */
 export const GET: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   try {
     // Validate path parameter
@@ -38,9 +41,9 @@ export const GET: APIRoute = async (context) => {
 
     const { id } = paramValidation.data;
 
-    // Fetch conversation
+    // Fetch conversation for the current user
     const conversationService = new ConversationService(supabase);
-    const conversation: ConversationDto | null = await conversationService.getConversationById(id);
+    const conversation: ConversationDto | null = await conversationService.getConversationById(id, userId);
 
     if (!conversation) {
       const errorResponse: ErrorResponseDto = {
@@ -78,6 +81,8 @@ export const GET: APIRoute = async (context) => {
  */
 export const DELETE: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   try {
     // Validate path parameter
@@ -100,9 +105,9 @@ export const DELETE: APIRoute = async (context) => {
 
     const { id } = paramValidation.data;
 
-    // Delete conversation
+    // Delete conversation for the current user
     const conversationService = new ConversationService(supabase);
-    const deleted: boolean = await conversationService.deleteConversation(id);
+    const deleted: boolean = await conversationService.deleteConversation(id, userId);
 
     if (!deleted) {
       const errorResponse: ErrorResponseDto = {

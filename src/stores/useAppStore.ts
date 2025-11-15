@@ -9,6 +9,7 @@ import type {
   ModelDto,
   ModelsListDto,
   CreateBranchCommand,
+  AuthUser,
 } from "@/types";
 
 // ============================================================================
@@ -21,9 +22,15 @@ interface UIFlags {
   isLoadingApiKey: boolean;
   isLoadingModels: boolean;
   isBranching: boolean;
+  isCheckingAuth: boolean;
+  isLoggingOut: boolean;
 }
 
 interface AppState {
+  // Authentication state
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+
   // Active conversation state
   activeConversationId: string | null;
 
@@ -50,8 +57,14 @@ interface AppState {
 }
 
 interface AppActions {
-  // Initialize app (fetch API key status, models, conversations)
+  // Initialize app (check auth, fetch API key status, models, conversations)
   initializeApp: () => Promise<void>;
+
+  // Check authentication status
+  checkAuth: () => Promise<void>;
+
+  // Logout user
+  logout: () => Promise<void>;
 
   // Sync active conversation ID from current URL
   syncFromUrl: () => void;
@@ -94,6 +107,8 @@ export const useAppStore = create<AppStore>()(
   persist(
     (set, get) => ({
       // Initial state
+      user: null,
+      isAuthenticated: false,
       activeConversationId: null,
       conversationsList: [],
       apiKeyExists: false,
@@ -105,6 +120,8 @@ export const useAppStore = create<AppStore>()(
         isLoadingApiKey: false,
         isLoadingModels: false,
         isBranching: false,
+        isCheckingAuth: false,
+        isLoggingOut: false,
       },
       conversationsError: null,
       isInitialized: false,
@@ -120,10 +137,87 @@ export const useAppStore = create<AppStore>()(
 
         // Sync state from URL first
         get().syncFromUrl();
-        // Fetch all initial data in parallel
-        await Promise.all([get().fetchApiKeyStatus(), get().fetchModels(), get().fetchConversations()]);
+        // Check authentication first, then fetch other data
+        await get().checkAuth();
+
+        // Only fetch app data if authenticated
+        if (get().isAuthenticated) {
+          await Promise.all([get().fetchApiKeyStatus(), get().fetchModels(), get().fetchConversations()]);
+        }
+
         // Mark as initialized
         set({ isInitialized: true });
+      },
+
+      checkAuth: async () => {
+        set({
+          uiFlags: { ...get().uiFlags, isCheckingAuth: true },
+        });
+
+        try {
+          const response = await fetch("/api/auth/session");
+
+          if (!response.ok) {
+            throw new Error("Failed to check authentication");
+          }
+
+          const data: { user: AuthUser | null } = await response.json();
+
+          set({
+            user: data.user,
+            isAuthenticated: data.user !== null,
+            uiFlags: { ...get().uiFlags, isCheckingAuth: false },
+          });
+        } catch {
+          // On error, assume not authenticated
+          set({
+            user: null,
+            isAuthenticated: false,
+            uiFlags: { ...get().uiFlags, isCheckingAuth: false },
+          });
+        }
+      },
+
+      logout: async () => {
+        set({
+          uiFlags: { ...get().uiFlags, isLoggingOut: true },
+        });
+
+        try {
+          const response = await fetch("/api/auth/logout", {
+            method: "POST",
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to logout");
+          }
+
+          // Clear auth state
+          set({
+            user: null,
+            isAuthenticated: false,
+            conversationsList: [],
+            activeConversationId: null,
+            uiFlags: { ...get().uiFlags, isLoggingOut: false },
+          });
+
+          toast.success("Signed out successfully");
+
+          // Navigate to landing page
+          if (typeof window !== "undefined" && "startViewTransition" in document) {
+            import("astro:transitions/client").then(({ navigate }) => {
+              navigate("/");
+            });
+          } else {
+            window.location.href = "/";
+          }
+        } catch {
+          set({
+            uiFlags: { ...get().uiFlags, isLoggingOut: false },
+          });
+
+          toast.error("Failed to sign out");
+        }
       },
 
       syncFromUrl: () => {
