@@ -72,8 +72,7 @@ export class ConversationService {
       });
 
       // Return a fallback title based on first message preview
-      const fallbackTitle = firstMessage.substring(0, 50).trim();
-      return fallbackTitle || "New Conversation";
+      return firstMessage.substring(0, 50).trim() || "New Conversation";
     }
   }
 
@@ -389,6 +388,11 @@ export class ConversationService {
           return `${role}: ${msg.content}`;
         })
         .join("\n\n");
+
+      // Guard: Prevent empty conversation text from being sent to OpenRouter
+      if (!conversationText || conversationText.trim().length === 0) {
+        throw new Error("No conversation content to summarize");
+      }
 
       // Generate summary using OpenRouter
       const summaryResponse = await this.openRouterService.createChatCompletion({
