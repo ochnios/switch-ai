@@ -28,7 +28,7 @@ This document outlines the technical architecture for implementing user authenti
 **Login Page** (`/src/pages/auth/login.astro`)
 
 * Astro page component with SSR
-* Pre-render check: if user already authenticated, redirect to `/app/new`
+* Pre-render check: if user already authenticated, redirect to `/app/conversations/new`
 * Contains LoginForm React component
 * Includes link to registration and password reset pages
 * Uses Layout.astro for consistent styling
@@ -36,7 +36,7 @@ This document outlines the technical architecture for implementing user authenti
 **Registration Page** (`/src/pages/auth/register.astro`)
 
 * Astro page component with SSR
-* Pre-render check: if user already authenticated, redirect to `/app/new`
+* Pre-render check: if user already authenticated, redirect to `/app/conversations/new`
 * Contains RegisterForm React component
 * Includes link to login page
 * Uses Layout.astro for consistent styling
@@ -69,7 +69,7 @@ All form components located in `/src/components/auth/` directory:
 * Displays server-side validation errors
 * On success: redirects based on context:
   * If `redirect` query parameter exists (user was redirected from protected route), redirect to that URL
-  * Otherwise, redirect to `/app/new`
+  * Otherwise, redirect to `/app/conversations/new`
 
 **RegisterForm.tsx**
 
@@ -79,7 +79,7 @@ All form components located in `/src/components/auth/` directory:
 * Client-side validation before submission
 * Calls `/api/auth/register` endpoint
 * Displays server-side validation errors
-* On success: automatically logs in user and redirects to `/app/new`
+* On success: automatically logs in user and redirects to `/app/conversations/new`
 
 **ResetPasswordForm.tsx**
 
@@ -127,13 +127,13 @@ All form components located in `/src/components/auth/` directory:
 
 * After successful login:
   * If `redirect` query parameter exists (user came from protected route), redirect to that URL
-  * Otherwise, redirect to `/app/new`
-* After successful registration → redirect to `/app/new`
+  * Otherwise, redirect to `/app/conversations/new`
+* After successful registration → redirect to `/app/conversations/new`
 * After password reset request → display success message on same page
 * After password update → redirect to `/auth/login` with success message
 * After logout → redirect to `/` (landing page)
-* Authenticated user accessing landing page `/` → redirect to `/app/new`
-* Authenticated user accessing `/auth/login` or `/auth/register` → redirect to `/app/new`
+* Authenticated user accessing landing page `/` → redirect to `/app/conversations/new`
+* Authenticated user accessing `/auth/login` or `/auth/register` → redirect to `/app/conversations/new`
 
 **Error Handling in Forms**:
 
@@ -176,7 +176,7 @@ All form components located in `/src/components/auth/` directory:
 3. Client-side validation runs on blur and submit
 4. On submit, form calls POST `/api/auth/register`
 5. On success: user is created in Supabase and automatically logged in
-6. User is redirected to `/app/new` (new users have no existing conversations)
+6. User is redirected to `/app/conversations/new` (new users have no existing conversations)
 
 **Scenario: User Login**
 
@@ -187,7 +187,7 @@ All form components located in `/src/components/auth/` directory:
 5. On success: server sets session cookie (managed automatically by Supabase SSR)
 6. User is redirected to:
    * The URL from `redirect` query parameter if present, OR
-   * `/app/new` (default post-login destination)
+   * `/app/conversations/new` (default post-login destination)
 
 **Scenario: Password Recovery**
 
@@ -204,14 +204,14 @@ All form components located in `/src/components/auth/` directory:
 
 **Scenario: Accessing Protected Route While Unauthenticated**
 
-1. Unauthenticated user attempts to access `/app/conversations/{id}` or `/app/new` or `/app/settings`
+1. Unauthenticated user attempts to access `/app/conversations/{id}` or `/app/conversations/new` or `/app/settings`
 2. Middleware intercepts request
 3. No valid session found
 4. User is redirected to `/auth/login?redirect=/app/conversations/{id}` (or the originally requested URL)
 5. After successful login, user is redirected to the URL from the `redirect` query parameter
 
 **Note on Post-Login Navigation**:
-For MVP, all successful logins redirect to `/app/new` unless the user was originally trying to access a protected route (in which case they're redirected back to that route). This keeps the implementation simple and consistent. Users can navigate to their existing conversations via the conversation list sidebar once they're in the app.
+For MVP, all successful logins redirect to `/app/conversations/new` unless the user was originally trying to access a protected route (in which case they're redirected back to that route). This keeps the implementation simple and consistent. Users can navigate to their existing conversations via the conversation list sidebar once they're in the app.
 
 **Scenario: User Logout**
 
@@ -540,12 +540,12 @@ Located in `/src/lib/utils/api-error-handler.ts`, extended to handle auth-specif
 3. Retrieve authenticated user and add to `context.locals.user`
 4. Implement route protection logic:
    * Public routes: `/` (landing page), `/api/auth/login`, `/api/auth/register`, `/api/auth/session`
-   * Auth-only routes: `/auth/*` (login, register, reset-password, etc.) - redirect authenticated users to `/app/new`
+   * Auth-only routes: `/auth/*` (login, register, reset-password, etc.) - redirect authenticated users to `/app/conversations/new`
    * Protected routes: `/app/*` - require authentication, redirect to `/auth/login?redirect={original_url}` if not authenticated
    * Protected API routes: `/api/*` (except `/api/auth/*`) - return 401 if not authenticated
 5. Handle authenticated user navigation:
    * If authenticated user accesses `/`, `/auth/login`, or `/auth/register`:
-     * Redirect to `/app/new`
+     * Redirect to `/app/conversations/new`
 6. Handle session refresh automatically (via Supabase SSR)
 
 **Context Extension**:
@@ -793,9 +793,9 @@ src/
 * First-time users can view landing page without registration
 * "Get Started" button redirects to `/auth/login`, which then requires authentication
 * After login/registration:
-  * All users → redirected to `/app/new` (simple, consistent behavior)
+  * All users → redirected to `/app/conversations/new` (simple, consistent behavior)
   * Users who were redirected from protected route → redirected back to originally requested URL
-* Authenticated users accessing landing page → automatically redirected to `/app/new`
+* Authenticated users accessing landing page → automatically redirected to `/app/conversations/new`
 * All US-003 through US-013 requirements remain implementable with authenticated user context
 
 ## 5. FUTURE ENHANCEMENTS

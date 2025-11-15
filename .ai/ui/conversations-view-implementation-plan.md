@@ -57,7 +57,7 @@ Components will be built in React (`.tsx`) and utilize `shadcn/ui` components an
 * **Main Elements:**
   * `<Button>` component from `shadcn/ui`.
 * **Supported Interactions:**
-  * `onClick`: Calls Zustand `setActiveConversation(null)` action and navigates to `/app/new`.
+  * `onClick`: Calls Zustand `setActiveConversation(null)` action and navigates to `/app/conversations/new`.
 * **Supported Validation:** Button is disabled if `activeConversationId` is already `null`.
 * **Types:** None.
 * **Props:** None (retrieves `activeConversationId` from Zustand store).
@@ -144,13 +144,13 @@ The sidebar uses the following state and actions from the unified store:
 
 * **Actions:**
   * `fetchConversations()` - Calls `GET /api/conversations?page=1&pageSize=50` and updates `conversationsList`. Sets loading flags appropriately.
-  * `setActiveConversation(id: string | null)` - Sets active conversation and handles navigation to `/app/conversations/[id]` or `/app/new`
+  * `setActiveConversation(id: string | null)` - Sets active conversation and handles navigation to `/app/conversations/[id]` or `/app/conversations/new`
   * `deleteConversation(id: string)` - Implementation:
     1. Sets appropriate loading flag
     2. Calls `DELETE /api/conversations/{id}`
     3. On success:
        * Removes conversation from `conversationsList`
-       * If deleted ID was active (`id === activeConversationId`), calls `setActiveConversation(null)` and navigates to `/app/new`
+       * If deleted ID was active (`id === activeConversationId`), calls `setActiveConversation(null)` and navigates to `/app/conversations/new`
        * Shows NonBlockingAlert toast: "Conversation deleted"
     4. On error:
        * Shows NonBlockingAlert toast: "Failed to delete conversation"
@@ -181,7 +181,7 @@ All API calls are handled by Zustand store actions using `fetch`.
    * **Response Type (Error):** `ErrorResponseDto`
    * **Handling:** Via Zustand `deleteConversation()` action.
 
-**Note:** `POST /api/conversations` is not called by this view. Clicking "New Conversation" navigates to `/app/new` and sets `activeConversationId = null`. The chat panel will be responsible for performing `POST /api/conversations` when the user sends the first message.
+**Note:** `POST /api/conversations` is not called by this view. Clicking "New Conversation" navigates to `/app/conversations/new` and sets `activeConversationId = null`. The chat panel will be responsible for performing `POST /api/conversations` when the user sends the first message.
 
 ***
 
@@ -195,7 +195,7 @@ All API calls are handled by Zustand store actions using `fetch`.
 * **Starting a New Conversation (US-007):**
   1. User clicks the "New Conversation" button.
   2. Zustand `setActiveConversation(null)` action is called.
-  3. Navigation to `/app/new` occurs.
+  3. Navigation to `/app/conversations/new` occurs.
   4. "New Conversation" button becomes inactive (`disabled`).
   5. Active highlighting disappears from all list items.
   6. Chat panel renders empty state, ready for a new message.
@@ -212,7 +212,7 @@ All API calls are handled by Zustand store actions using `fetch`.
   4. **Scenario A (Confirmation):** User clicks the `Check` icon.
      * Zustand `deleteConversation(id)` action is called.
      * NonBlockingAlert toast shows "Deleting..."
-     * On success: conversation disappears from list, toast shows "Conversation deleted". If it was active, navigates to `/app/new`.
+     * On success: conversation disappears from list, toast shows "Conversation deleted". If it was active, navigates to `/app/conversations/new`.
      * On error: toast shows "Failed to delete conversation", conversation remains in list.
   5. **Scenario B (Cancellation by blur):** User removes focus from the button (e.g., `onBlur`).
      * `isConfirmingDelete` state returns to `false`. Icon returns to `Trash2`.
@@ -277,7 +277,7 @@ Error handling follows the consistent strategy:
 
 5. **Implement "New Conversation" Logic:**
    * `NewConversationButton` retrieves `activeConversationId` from Zustand.
-   * `onClick` calls Zustand `setActiveConversation(null)` which also navigates to `/app/new`.
+   * `onClick` calls Zustand `setActiveConversation(null)` which also navigates to `/app/conversations/new`.
    * Button is `disabled` when `activeConversationId === null`.
 
 6. **Implement Conversation Selection Logic:**
@@ -306,7 +306,7 @@ Error handling follows the consistent strategy:
     * Loading conversations list
     * Empty conversations list
     * Selecting a conversation (navigation works)
-    * Starting new conversation (navigation to /app/new)
+    * Starting new conversation (navigation to /app/conversations/new)
     * Deleting conversation (two-step confirmation, active conversation handling)
     * Error handling (load error, delete error)
     * Settings button opens modal

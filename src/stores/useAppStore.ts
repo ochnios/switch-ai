@@ -226,6 +226,15 @@ export const useAppStore = create<AppStore>()(
         const path = window.location.pathname;
         const currentActiveId = get().activeConversationId;
 
+        // Check if we're on the new conversation page
+        if (path === "/app/conversations/new") {
+          // Only update if state needs to change
+          if (currentActiveId !== null) {
+            set({ activeConversationId: null });
+          }
+          return;
+        }
+
         // Extract conversation ID from URL pattern: /app/conversations/:id
         const conversationMatch = path.match(/^\/app\/conversations\/([^/]+)$/);
         if (conversationMatch) {
@@ -245,15 +254,6 @@ export const useAppStore = create<AppStore>()(
               console.warn(`Invalid conversation ID in URL: ${conversationId}`);
               get().setActiveConversation(null);
             }
-          }
-          return;
-        }
-
-        // Check if we're on the new conversation page
-        if (path === "/app/new") {
-          // Only update if state needs to change
-          if (currentActiveId !== null) {
-            set({ activeConversationId: null });
           }
           return;
         }
@@ -353,7 +353,10 @@ export const useAppStore = create<AppStore>()(
         set({ activeConversationId: id });
 
         // Navigate to the appropriate route using Astro's View Transitions
-        const targetUrl = id === null ? "/app/new" : `/app/conversations/${id}`;
+        const targetUrl = id === null ? "/app/conversations/new" : `/app/conversations/${id}`;
+        if (window.location.href.endsWith(targetUrl)) {
+          return;
+        }
 
         // Use native navigation with View Transitions support
         if (typeof window !== "undefined" && "startViewTransition" in document) {

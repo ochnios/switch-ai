@@ -8,5 +8,5 @@ const { id } = Astro.params;
 
 <AppLayout title="Conversation - switch-ai">
   <ConversationSidebar slot="sidebar" client:load transition:persist />
-  <ChatPanelView slot="main" conversationId={id ?? ""} client:only="react" />
+  <ChatPanelView slot="main" conversationId={id && id != "new" ? id : null} client:only="react" transition:persist />
 </AppLayout>

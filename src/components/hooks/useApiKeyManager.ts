@@ -14,6 +14,7 @@ export function useApiKeyManager() {
   const [formStatus, setFormStatus] = useState<FormStatus>("idle");
   const [apiError, setApiError] = useState<ErrorResponseDto | null>(null);
   const fetchApiKeyStatus = useAppStore((state) => state.fetchApiKeyStatus);
+  const fetchModels = useAppStore((state) => state.fetchModels);
 
   /**
    * Check if API key exists for the current user
@@ -65,8 +66,8 @@ export function useApiKeyManager() {
       setKeyStatus("exists");
       setFormStatus("idle");
 
-      // Sync with global store
-      await fetchApiKeyStatus();
+      // Sync with global store - update API key status and fetch models
+      await Promise.all([fetchApiKeyStatus(), fetchModels()]);
 
       // Show success notification
       toast.success(successData.message || "API key saved successfully");
@@ -102,8 +103,10 @@ export function useApiKeyManager() {
       setKeyStatus("not_exists");
       setFormStatus("idle");
 
-      // Sync with global store
+      // Sync with global store - update API key status and clear models
       await fetchApiKeyStatus();
+      // Clear models list since API key is deleted
+      useAppStore.setState({ modelsList: [] });
 
       // Show success notification
       toast.success("API key deleted successfully");

@@ -119,7 +119,7 @@ export function LoginForm() {
         window.location.href = redirectUrl;
       } else {
         // No redirect parameter - go to new conversation page
-        window.location.href = "/app/new";
+        window.location.href = "/app/conversations/new";
       }
     } catch (error) {
       setGeneralError(error instanceof Error ? error.message : "An error occurred. Please try again later");
