@@ -37,11 +37,3 @@ const { title = "switch-ai" } = Astro.props;
   <!-- Toast notifications -->
   <Toaster client:only="react" richColors position="top-right" />
 </Layout>
-
-<style>
-  /* Ensure the layout takes full viewport height */
-  :global(#app-root) {
-    height: 100vh;
-    overflow: hidden;
-  }
-</style>

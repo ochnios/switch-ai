@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { LoginForm } from "@/components/auth/LoginForm";
+
+// TODO: Add SSR check - if user already authenticated, redirect to /app/new or last conversation
+// This will be implemented when middleware and auth system are ready
+---
+
+<Layout title="Sign in - switch-ai">
+  <LoginForm client:load />
+</Layout>
