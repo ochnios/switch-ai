@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Trash2, Check } from "lucide-react";
 import type { ConversationDto } from "@/types";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface ConversationListItemProps {
@@ -82,28 +83,37 @@ export function ConversationListItem({ conversation, isActive, onSelect, onDelet
       role="listitem"
     >
       {/* Main conversation button */}
-      <Button
-        variant="ghost"
-        className={cn(
-          "flex-1 justify-start gap-2 overflow-hidden text-left hover:bg-transparent",
-          "h-auto min-h-[2.5rem] p-0"
-        )}
-        onClick={handleClick}
-        aria-selected={isActive}
-        aria-label={`Select conversation: ${displayTitle}`}
-      >
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <span
-            className={cn(
-              "truncate text-sm font-medium",
-              conversation.title?.trim() ? "text-sidebar-foreground" : "text-muted-foreground italic"
-            )}
-          >
-            {displayTitle}
-          </span>
-          <span className="text-xs text-muted-foreground">{formatDate(conversation.created_at)}</span>
-        </div>
-      </Button>
+      <TooltipProvider>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                "flex-1 justify-start gap-2 overflow-hidden text-left hover:bg-transparent",
+                "h-auto min-h-[2.5rem] p-0"
+              )}
+              onClick={handleClick}
+              aria-selected={isActive}
+              aria-label={`Select conversation: ${displayTitle}`}
+            >
+              <div className="flex flex-1 flex-col overflow-hidden">
+                <span
+                  className={cn(
+                    "truncate text-sm font-medium",
+                    conversation.title?.trim() ? "text-sidebar-foreground" : "text-muted-foreground italic"
+                  )}
+                >
+                  {displayTitle}
+                </span>
+                <span className="text-xs text-muted-foreground">{formatDate(conversation.created_at)}</span>
+              </div>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" align="start">
+            <p>{displayTitle}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       {/* Delete button with two-step confirmation */}
       <Button

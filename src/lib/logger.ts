@@ -38,6 +38,20 @@ export class Logger {
   }
 
   /**
+   * Logs an info message with context and optional metadata
+   */
+  info(message: string, metadata?: Record<string, unknown>) {
+    const sanitizedMetadata = this.sanitizeMetadata(metadata);
+
+    console.log({
+      context: this.context,
+      message,
+      ...(sanitizedMetadata ? { metadata: sanitizedMetadata } : {}),
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  /**
    * Removes sensitive data from metadata before logging
    */
   private sanitizeMetadata(metadata?: Record<string, unknown>): Record<string, unknown> | undefined {

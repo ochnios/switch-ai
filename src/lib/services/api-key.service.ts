@@ -131,23 +131,4 @@ export class ApiKeyService {
       throw error;
     }
   }
-
-  /**
-   * Legacy method: Retrieves the OpenRouter API key from environment variables
-   * Used for development/testing when user API keys are not yet set up
-   *
-   * @returns The API key from environment variables
-   * @throws Error if API key is not configured
-   * @deprecated Use getApiKey(userId) instead
-   */
-  getApiKeyFromEnv(): string {
-    const apiKey = import.meta.env.OPENROUTER_API_KEY;
-
-    if (!apiKey) {
-      logger.error(new Error("OpenRouter API key not configured"));
-      throw new Error("OpenRouter API key not configured");
-    }
-
-    return apiKey;
-  }
 }

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { MessageDto, PaginatedMessagesDto } from "../../types";
+import { config } from "../config";
 import { Logger } from "../logger";
-import type { ChatMessage } from "./open-router.service";
 import { OpenRouterService } from "./open-router.service";
 
 const logger = new Logger("MessageService");
@@ -105,11 +105,12 @@ export class MessageService {
         throw new Error("Failed to save user message");
       }
 
-      // Fetch conversation history for context
+      // Fetch conversation history for context (excluding the current user message)
       const { data: historyMessages, error: historyError } = await this.supabase
         .from("messages")
         .select("role, content")
         .eq("conversation_id", conversationId)
+        .neq("id", userMessage.id)
         .order("created_at", { ascending: true });
 
       if (historyError) {
@@ -120,14 +121,50 @@ export class MessageService {
         throw new Error("Failed to fetch conversation history");
       }
 
-      // Format messages for OpenRouter API
-      const chatMessages: ChatMessage[] = historyMessages.map((msg) => ({
-        role: msg.role as "user" | "assistant" | "system",
-        content: msg.content,
-      }));
+      // Separate user, assistant, and system messages from history
+      const userMessages: { content: string }[] = [];
+      const assistantMessages: { content: string }[] = [];
+      let conversationSummary: string | null = null;
 
-      // Call OpenRouter API
-      const aiResponse = await this.openRouterService.createChatCompletion(userId, model, chatMessages);
+      for (const msg of historyMessages) {
+        if (msg.role === "user") {
+          userMessages.push({ content: msg.content });
+        } else if (msg.role === "assistant") {
+          assistantMessages.push({ content: msg.content });
+        } else if (msg.role === "system") {
+          // Store system message (conversation summary) to include in system prompt
+          conversationSummary = msg.content;
+        }
+      }
+
+      // Add current user message
+      userMessages.push({ content });
+
+      // Build system message with conversation summary if available
+      let systemMessage: string | undefined;
+      if (conversationSummary) {
+        systemMessage = `${config.ai.systemPrompt}
+
+---
+
+This is a continuation of a longer conversation. Here is the summary of the previous discussion:
+
+<summary>
+${conversationSummary}
+</summary>
+
+Please use this context when responding to the user's messages.`;
+      }
+
+      // Call OpenRouter API with new ChatCompletionParams interface
+      const aiResponse = await this.openRouterService.createChatCompletion({
+        userId,
+        model,
+        systemMessage, // Use custom system message if summary exists, otherwise undefined (will use default)
+        userMessages,
+        assistantMessages,
+        // Use default model parameters from config
+      });
 
       // Save assistant message
       const { data: assistantMessage, error: assistantMessageError } = await this.supabase
