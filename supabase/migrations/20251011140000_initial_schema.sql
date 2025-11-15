@@ -63,6 +63,16 @@ create index idx_conversations_user_id on conversations(user_id);
 -- Common query pattern: SELECT * FROM messages WHERE conversation_id = $1 ORDER BY created_at DESC
 create index idx_messages_conversation_id_created_at on messages(conversation_id, created_at desc);
 
+-- Index: idx_conversations_parent_conversation_id
+-- Purpose: Optimize foreign key operations and queries filtering by parent conversation
+-- Common query pattern: SELECT * FROM conversations WHERE parent_conversation_id = $1
+create index idx_conversations_parent_conversation_id on conversations(parent_conversation_id);
+
+-- Index: idx_messages_conversation_id
+-- Purpose: Optimize foreign key operations on conversation_id
+-- Common query pattern: Foreign key constraint checks and joins
+create index idx_messages_conversation_id on messages(conversation_id);
+
 -- ============================================================================
 -- Row Level Security (RLS)
 -- ============================================================================
@@ -82,29 +92,29 @@ alter table messages enable row level security;
 create policy api_keys_select_own on api_keys
   for select
   to authenticated
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 -- Policy: api_keys_insert_own
 -- Allows authenticated users to create their own API key
 create policy api_keys_insert_own on api_keys
   for insert
   to authenticated
-  with check (auth.uid() = user_id);
+  with check ((select auth.uid()) = user_id);
 
 -- Policy: api_keys_update_own
 -- Allows authenticated users to update only their own API key
 create policy api_keys_update_own on api_keys
   for update
   to authenticated
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
 
 -- Policy: api_keys_delete_own
 -- Allows authenticated users to delete only their own API key
 create policy api_keys_delete_own on api_keys
   for delete
   to authenticated
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 -- ----------------------------------------------------------------------------
 -- RLS Policies: conversations
@@ -116,22 +126,22 @@ create policy api_keys_delete_own on api_keys
 create policy conversations_select_own on conversations
   for select
   to authenticated
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 -- Policy: conversations_insert_own
 -- Allows authenticated users to create their own conversations
 create policy conversations_insert_own on conversations
   for insert
   to authenticated
-  with check (auth.uid() = user_id);
+  with check ((select auth.uid()) = user_id);
 
 -- Policy: conversations_update_own
 -- Allows authenticated users to update only their own conversations
 create policy conversations_update_own on conversations
   for update
   to authenticated
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
 
 -- Policy: conversations_delete_own
 -- Allows authenticated users to delete only their own conversations
@@ -139,7 +149,7 @@ create policy conversations_update_own on conversations
 create policy conversations_delete_own on conversations
   for delete
   to authenticated
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 -- ----------------------------------------------------------------------------
 -- RLS Policies: messages
@@ -155,7 +165,7 @@ create policy messages_select_own on messages
     exists (
       select 1 from conversations
       where conversations.id = messages.conversation_id
-      and conversations.user_id = auth.uid()
+      and conversations.user_id = (select auth.uid())
     )
   );
 
@@ -168,7 +178,7 @@ create policy messages_insert_own on messages
     exists (
       select 1 from conversations
       where conversations.id = messages.conversation_id
-      and conversations.user_id = auth.uid()
+      and conversations.user_id = (select auth.uid())
     )
   );
 
@@ -181,14 +191,14 @@ create policy messages_update_own on messages
     exists (
       select 1 from conversations
       where conversations.id = messages.conversation_id
-      and conversations.user_id = auth.uid()
+      and conversations.user_id = (select auth.uid())
     )
   )
   with check (
     exists (
       select 1 from conversations
       where conversations.id = messages.conversation_id
-      and conversations.user_id = auth.uid()
+      and conversations.user_id = (select auth.uid())
     )
   );
 
@@ -201,6 +211,6 @@ create policy messages_delete_own on messages
     exists (
       select 1 from conversations
       where conversations.id = messages.conversation_id
-      and conversations.user_id = auth.uid()
+      and conversations.user_id = (select auth.uid())
     )
   );
