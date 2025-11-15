@@ -1,11 +1,11 @@
 import type { APIRoute } from "astro";
 
 import { DEFAULT_USER_ID } from "../../../../db/supabase.client";
-import { OpenRouterError } from "../../../../lib/errors";
 import { Logger } from "../../../../lib/logger";
 import { paginationQuerySchema } from "../../../../lib/schemas/common.schema";
 import { sendMessageCommandSchema } from "../../../../lib/schemas/messages.schema";
 import { MessageService } from "../../../../lib/services/message.service";
+import { handleApiError } from "../../../../lib/utils/api-error-handler";
 import type { ErrorResponseDto, MessageDto, PaginatedMessagesDto } from "../../../../types";
 
 export const prerender = false;
@@ -147,30 +147,7 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Handle OpenRouter service errors (API key issues, AI model errors)
-    if (error instanceof OpenRouterError) {
-      const errorResponse: ErrorResponseDto = {
-        statusCode: 400,
-        message: error.message,
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Handle unexpected errors
-    postLogger.error(error instanceof Error ? error : new Error(String(error)), {
-      userId,
-      conversationId,
-    });
-    const errorResponse: ErrorResponseDto = {
-      statusCode: 500,
-      message: "Failed to send message",
-    };
-    return new Response(JSON.stringify(errorResponse), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Handle all OpenRouter errors (API key issues, rate limits, etc.)
+    return handleApiError(error, postLogger, { userId, conversationId });
   }
 };

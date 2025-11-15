@@ -49,3 +49,66 @@ export class ApiKeyEncryptionError extends OpenRouterError {
     this.name = "ApiKeyEncryptionError";
   }
 }
+
+/**
+ * Error thrown when OpenRouter API key is invalid or expired (401/403)
+ */
+export class OpenRouterUnauthorizedError extends OpenRouterError {
+  constructor(message = "Invalid or expired OpenRouter API key", cause?: Error) {
+    super(message, cause);
+    this.name = "OpenRouterUnauthorizedError";
+  }
+}
+
+/**
+ * Error thrown when OpenRouter rate limit is exceeded (429)
+ */
+export class OpenRouterRateLimitError extends OpenRouterError {
+  constructor(message = "OpenRouter rate limit exceeded. Please try again later.", cause?: Error) {
+    super(message, cause);
+    this.name = "OpenRouterRateLimitError";
+  }
+}
+
+/**
+ * Error thrown when OpenRouter server error occurs (5xx)
+ */
+export class OpenRouterServerError extends OpenRouterError {
+  constructor(message = "OpenRouter server error. Please try again later.", cause?: Error) {
+    super(message, cause);
+    this.name = "OpenRouterServerError";
+  }
+}
+
+/**
+ * Error thrown when OpenRouter upstream provider is overloaded (529)
+ */
+export class OpenRouterProviderOverloadedError extends OpenRouterError {
+  constructor(
+    message = "AI model provider is currently overloaded. Please try again or switch models.",
+    cause?: Error
+  ) {
+    super(message, cause);
+    this.name = "OpenRouterProviderOverloadedError";
+  }
+}
+
+/**
+ * Error thrown when request validation fails (400)
+ */
+export class OpenRouterValidationError extends OpenRouterError {
+  constructor(message = "Invalid request parameters", cause?: Error) {
+    super(message, cause);
+    this.name = "OpenRouterValidationError";
+  }
+}
+
+/**
+ * Error thrown when network/timeout errors occur
+ */
+export class OpenRouterNetworkError extends OpenRouterError {
+  constructor(message = "Network error while communicating with OpenRouter", cause?: Error) {
+    super(message, cause);
+    this.name = "OpenRouterNetworkError";
+  }
+}

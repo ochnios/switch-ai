@@ -2,9 +2,7 @@ import type { SupabaseClient } from "../../db/supabase.client";
 import type { BranchType, ConversationDto, PaginatedConversationsDto } from "../../types";
 import { config } from "../config";
 import { Logger } from "../logger";
-// import { ApiKeyService } from "./api-key.service";
-// import type { ChatMessage } from "./open-router.service";
-// import { OpenRouterService } from "./open-router.service";
+import { OpenRouterService } from "./open-router.service";
 
 const logger = new Logger("ConversationService");
 
@@ -12,27 +10,71 @@ const logger = new Logger("ConversationService");
  * Service for managing conversations
  */
 export class ConversationService {
-  // private apiKeyService: ApiKeyService;
-  // private openRouterService: OpenRouterService;
+  private openRouterService: OpenRouterService;
 
   constructor(private supabase: SupabaseClient) {
-    // this.apiKeyService = new ApiKeyService();
-    // this.openRouterService = new OpenRouterService();
+    this.openRouterService = new OpenRouterService(supabase);
   }
 
   /**
    * Generates a title for a conversation based on the first message
-   * TODO: Implement AI-powered title generation using OpenRouterService
-   * This should analyze the conversation content and generate a meaningful, concise title
+   * Uses AI to create a concise, language-appropriate title (3-4 words max)
    *
    * @param firstMessage - The first message content
-   * @returns Generated title for the conversation
+   * @param userId - The user's ID (required for OpenRouter API access)
+   * @returns Generated title for the conversation (max 50 characters)
+   * @throws Error if title generation fails
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async generateTitle(firstMessage: string): Promise<string> {
-    // TODO: Use OpenRouterService to generate a meaningful title based on the first message
-    // For now, return a placeholder title
-    return "Generated title";
+  async generateTitle(firstMessage: string, userId: string): Promise<string> {
+    try {
+      // Use OpenRouter to generate a concise title
+      const response = await this.openRouterService.createChatCompletion({
+        userId,
+        model: config.ai.titleGeneration.model,
+        systemMessage: config.ai.titleGeneration.prompt,
+        userMessages: [{ content: firstMessage }],
+        modelParams: {
+          temperature: config.ai.titleGeneration.temperature,
+          maxTokens: config.ai.titleGeneration.maxTokens,
+        },
+      });
+
+      // Extract and clean the generated title
+      let title = response.content.trim();
+
+      // Remove quotes if present (in case AI wraps title in quotes)
+      title = title.replace(/^["']|["']$/g, "");
+
+      // Truncate to 50 characters if longer
+      if (title.length > 50) {
+        title = title.substring(0, 50).trim();
+        // Remove trailing punctuation or incomplete words
+        title = title.replace(/[.,!?;:\s]+$/, "");
+      }
+
+      // Fallback to a default title if empty
+      if (!title) {
+        logger.warn("Generated title was empty, using fallback", { userId });
+        title = "New Conversation";
+      }
+
+      logger.info("Generated conversation title", {
+        userId,
+        titleLength: title.length,
+      });
+
+      return title;
+    } catch (error) {
+      // Log error and return fallback title
+      logger.error(error instanceof Error ? error : new Error(String(error)), {
+        userId,
+        firstMessageLength: firstMessage.length,
+      });
+
+      // Return a fallback title based on first message preview
+      const fallbackTitle = firstMessage.substring(0, 50).trim();
+      return fallbackTitle || "New Conversation";
+    }
   }
 
   /**
@@ -238,7 +280,12 @@ export class ConversationService {
           newConversation.id
         );
       } else {
-        await this.createSummaryForBranch(sourceMessage.conversation_id, sourceMessage.created_at, newConversation.id);
+        await this.createSummaryForBranch(
+          sourceMessage.conversation_id,
+          sourceMessage.created_at,
+          newConversation.id,
+          parentConversation.user_id
+        );
       }
 
       return newConversation;
@@ -304,80 +351,92 @@ export class ConversationService {
 
   /**
    * Creates a summary message for a summary branch using AI
+   * Uses OpenRouter to generate a concise summary of the conversation history
    *
    * @param parentConversationId - The parent conversation ID
    * @param sourceMessageCreatedAt - The created_at timestamp of the source message
    * @param newConversationId - The new conversation ID
+   * @param userId - The user's ID (required for OpenRouter API access)
    * @throws Error if summary generation fails
    */
   private async createSummaryForBranch(
     parentConversationId: string,
     sourceMessageCreatedAt: string,
-    newConversationId: string
+    newConversationId: string,
+    userId: string
   ): Promise<void> {
-    // Fetch conversation history up to the source message
-    const { data: messages, error: fetchError } = await this.supabase
-      .from("messages")
-      .select("role, content")
-      .eq("conversation_id", parentConversationId)
-      .lte("created_at", sourceMessageCreatedAt)
-      .order("created_at", { ascending: true });
+    try {
+      // Fetch conversation history up to the source message
+      const { data: messages, error: fetchError } = await this.supabase
+        .from("messages")
+        .select("role, content")
+        .eq("conversation_id", parentConversationId)
+        .lte("created_at", sourceMessageCreatedAt)
+        .order("created_at", { ascending: true });
 
-    if (fetchError || !messages || messages.length === 0) {
-      logger.error(new Error("Failed to fetch messages for summary branch"), {
+      if (fetchError || !messages || messages.length === 0) {
+        logger.error(new Error("Failed to fetch messages for summary branch"), {
+          parentConversationId,
+          error: fetchError,
+        });
+        throw new Error("Failed to fetch messages for summary branch");
+      }
+
+      // Format conversation history as text for summarization
+      const conversationText = messages
+        .map((msg) => {
+          const role = msg.role === "user" ? "USER" : msg.role === "assistant" ? "ASSISTANT" : "SYSTEM";
+          return `${role}: ${msg.content}`;
+        })
+        .join("\n\n");
+
+      // Generate summary using OpenRouter
+      const summaryResponse = await this.openRouterService.createChatCompletion({
+        userId,
+        model: config.ai.conversationSummary.model,
+        systemMessage: config.ai.conversationSummary.prompt,
+        userMessages: [{ content: conversationText }],
+        modelParams: {
+          temperature: config.ai.conversationSummary.temperature,
+          maxTokens: config.ai.conversationSummary.maxTokens,
+        },
+      });
+
+      // Extract the summary
+      const summary = summaryResponse.content.trim();
+
+      // Insert summary as a system message in the new conversation
+      const { error: insertError } = await this.supabase.from("messages").insert({
+        conversation_id: newConversationId,
+        role: "system",
+        content: summary,
+        model_name: summaryResponse.model,
+        prompt_tokens: summaryResponse.usage.prompt_tokens,
+        completion_tokens: summaryResponse.usage.completion_tokens,
+      });
+
+      if (insertError) {
+        logger.error(new Error("Failed to insert summary message"), {
+          newConversationId,
+          error: insertError,
+        });
+        throw new Error("Failed to insert summary message");
+      }
+
+      logger.info("Created conversation summary for branch", {
+        userId,
         parentConversationId,
-        error: fetchError,
-      });
-      throw new Error("Failed to fetch messages for summary branch");
-    }
-
-    // Get API key for OpenRouter
-    // const apiKey = this.apiKeyService.getApiKey();
-
-    // Prepare messages for AI summarization
-    // const chatMessages: ChatMessage[] = [
-    //   {
-    //     role: "system",
-    //     content:
-    //       "You are a helpful assistant that creates concise summaries of conversations. Summarize the following conversation in a clear and informative way, capturing the key points and context.",
-    //   },
-    //   ...messages.map((msg) => ({
-    //     role: msg.role as "user" | "assistant" | "system",
-    //     content: msg.content,
-    //   })),
-    // ];
-
-    // Generate summary using OpenRouter
-    // const summaryResponse = await this.openRouterService.createChatCompletion(
-    //   apiKey,
-    //   config.ai.summaryModel,
-    //   chatMessages
-    // );
-
-    // Mock summary response for development
-    const messageCount = messages.length;
-    const mockSummary = `This is a branch containing a summary of ${messageCount} message${messageCount !== 1 ? "s" : ""} from the previous conversation. [Mock summary - OpenRouter integration pending]`;
-
-    // Insert summary as a system message in the new conversation
-    const { error: insertError } = await this.supabase.from("messages").insert({
-      conversation_id: newConversationId,
-      role: "system",
-      content: mockSummary,
-      // content: summaryResponse.content,
-      model_name: config.ai.summaryModel,
-      // model_name: summaryResponse.model,
-      prompt_tokens: null,
-      // prompt_tokens: summaryResponse.usage.prompt_tokens,
-      completion_tokens: null,
-      // completion_tokens: summaryResponse.usage.completion_tokens,
-    });
-
-    if (insertError) {
-      logger.error(new Error("Failed to insert summary message"), {
         newConversationId,
-        error: insertError,
+        messageCount: messages.length,
+        summaryLength: summary.length,
       });
-      throw new Error("Failed to insert summary message");
+    } catch (error) {
+      logger.error(error instanceof Error ? error : new Error(String(error)), {
+        userId,
+        parentConversationId,
+        newConversationId,
+      });
+      throw error;
     }
   }
 }

@@ -37,7 +37,7 @@ export function ModelSelector({ value, onChange, modelsList, isLoading, disabled
           aria-expanded={open}
           aria-label="Select AI model"
           disabled={disabled || isLoading || modelsList.length === 0}
-          className="w-[200px] justify-between"
+          className="w-[260px] justify-between"
         >
           {isLoading ? (
             "Loading models..."
@@ -51,7 +51,7 @@ export function ModelSelector({ value, onChange, modelsList, isLoading, disabled
           <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
+      <PopoverContent className="w-[260px] p-0" align="start">
         <Command>
           <CommandInput placeholder="Search models..." />
           <CommandList>
@@ -67,8 +67,8 @@ export function ModelSelector({ value, onChange, modelsList, isLoading, disabled
                     setOpen(false);
                   }}
                 >
-                  <Check className={cn("mr-2 size-4", value === model.id ? "opacity-100" : "opacity-0")} />
                   <span className="truncate">{model.name}</span>
+                  <Check className={cn("mr-1 size-4", value === model.id ? "opacity-100" : "opacity-0")} />
                 </CommandItem>
               ))}
             </CommandGroup>
