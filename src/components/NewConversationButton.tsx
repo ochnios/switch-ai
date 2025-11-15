@@ -79,7 +79,7 @@ export function NewConversationButton({ onNavigate }: NewConversationButtonProps
           <span className="w-full inline-block">{button}</span>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Configure your api key to start new conversation</p>
+          <p>Configure your API key to start new conversation</p>
         </TooltipContent>
       </Tooltip>
     );

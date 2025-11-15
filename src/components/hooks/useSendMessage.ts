@@ -123,7 +123,15 @@ export function useSendMessage({
         setIsSending(false);
       }
     },
-    [conversationId, onMessagesUpdate, onMessageAdd, onMessageRemove, setActiveConversation, addConversationToList, setLastUsedModel]
+    [
+      conversationId,
+      onMessagesUpdate,
+      onMessageAdd,
+      onMessageRemove,
+      setActiveConversation,
+      addConversationToList,
+      setLastUsedModel,
+    ]
   );
 
   return {
@@ -131,4 +139,3 @@ export function useSendMessage({
     isSending,
   };
 }
-
