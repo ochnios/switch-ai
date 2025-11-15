@@ -26,14 +26,21 @@ const isProtectedRoute = (pathname: string): boolean => {
  * API routes that don't require authentication
  * All other API routes are protected by default
  */
-const PUBLIC_API_ROUTES = ["/api/auth/login", "/api/auth/register", "/api/auth/session"];
+const PUBLIC_API_ROUTES = [
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/reset-password",
+  "/api/auth/update-password",
+  "/api/auth/logout",
+  "/api/auth/session",
+];
 
 /**
  * Middleware for authentication and route protection
  *
  * Responsibilities:
  * 1. Create Supabase SSR client with cookie handling
- * 2. Retrieve authenticated user and add to context.locals
+ * 2. Retrieve authenticated user and add to context.locals (only when needed)
  * 3. Protect routes based on authentication status
  * 4. Redirect authenticated users from auth-only pages
  * 5. Redirect unauthenticated users from protected routes
@@ -48,17 +55,18 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
   // Add Supabase client to context for use in endpoints
   locals.supabase = supabase;
 
-  // Get authenticated user
+  const pathname = url.pathname;
+
+  // Skip authentication check for public API routes
+  if (PUBLIC_API_ROUTES.some((route) => pathname === route)) {
+    locals.user = null;
+    return next();
+  }
+
+  // Get authenticated user only when needed (for protected routes or auth-only pages)
   const authService = createAuthService(supabase);
   const user = await authService.getUser();
   locals.user = user;
-
-  const pathname = url.pathname;
-
-  // Allow public API routes without authentication
-  if (PUBLIC_API_ROUTES.some((route) => pathname === route)) {
-    return next();
-  }
 
   // Protect API routes (except auth endpoints)
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth/")) {

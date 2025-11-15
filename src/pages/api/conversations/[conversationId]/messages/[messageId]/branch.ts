@@ -104,11 +104,7 @@ export const POST: APIRoute = async (context) => {
 
     // Create branch using ConversationService
     const conversationService = new ConversationService(supabase);
-    const newConversation: ConversationDto = await conversationService.createBranchFromMessage(
-      messageId,
-      type,
-      userId
-    );
+    const newConversation: ConversationDto = await conversationService.createBranchFromMessage(messageId, type, userId);
 
     return new Response(JSON.stringify(newConversation), {
       status: 201,

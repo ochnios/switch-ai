@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 
 /**
  * LoginForm - User login form component
@@ -22,15 +23,29 @@ export function LoginForm() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   // Get redirect parameter from URL if present
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getRedirectUrl = () => {
     if (typeof window === "undefined") return null;
     const params = new URLSearchParams(window.location.search);
     return params.get("redirect");
   };
+
+  // Check for success message in URL on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const message = params.get("message");
+    if (message) {
+      setSuccessMessage(message);
+      // Clean up URL by removing message parameter
+      params.delete("message");
+      const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, []);
 
   // Client-side email validation
   const validateEmail = (value: string): string => {
@@ -138,15 +153,15 @@ export function LoginForm() {
   };
 
   // Navigate to reset password page
-  const handleResetPasswordClick = () => {
-    if (typeof window !== "undefined" && "startViewTransition" in document) {
-      import("astro:transitions/client").then(({ navigate }) => {
-        navigate("/auth/reset-password");
-      });
-    } else {
-      window.location.href = "/auth/reset-password";
-    }
-  };
+  // const handleResetPasswordClick = () => {
+  //   if (typeof window !== "undefined" && "startViewTransition" in document) {
+  //     import("astro:transitions/client").then(({ navigate }) => {
+  //       navigate("/auth/reset-password");
+  //     });
+  //   } else {
+  //     window.location.href = "/auth/reset-password";
+  //   }
+  // };
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
@@ -157,6 +172,14 @@ export function LoginForm() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {/* Success Message Alert */}
+            {successMessage && (
+              <Alert className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
+                <CheckCircle2 className="h-4 w-4" />
+                <AlertDescription>{successMessage}</AlertDescription>
+              </Alert>
+            )}
+
             {/* General Error Alert */}
             {generalError && (
               <Alert variant="destructive">
@@ -211,14 +234,22 @@ export function LoginForm() {
 
             {/* Forgot Password Link */}
             <div className="text-right">
-              <button
-                type="button"
-                onClick={handleResetPasswordClick}
-                className="text-sm text-primary hover:underline"
-                disabled={isLoading}
-              >
-                Forgot password?
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    // onClick={handleResetPasswordClick}
+                    className="text-sm text-muted-foreground cursor-not-allowed"
+                    disabled
+                    aria-label="Password reset is not currently available"
+                  >
+                    Forgot password?
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>This feature is not currently available</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </CardContent>
 

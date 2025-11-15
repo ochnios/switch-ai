@@ -62,24 +62,22 @@ export function ResetPasswordForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement API call to /api/auth/reset-password
-      // const response = await fetch("/api/auth/reset-password", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email }),
-      // });
-      //
-      // if (!response.ok) {
-      //   const error = await response.json();
-      //   throw new Error(error.message || "Failed to send reset email");
-      // }
-      //
-      // Display success message
-      // setSuccessMessage("Password reset email sent. Please check your inbox.");
-      // setEmail(""); // Clear form
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
 
-      console.log("Reset password form submitted:", { email });
-      setSuccessMessage("Backend not yet implemented. In production, a password reset email would be sent.");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to send reset email");
+      }
+
+      // Display success message
+      setSuccessMessage(
+        "If an account exists with this email, a password reset link has been sent. Please check your inbox."
+      );
+      setEmail(""); // Clear form
     } catch (error) {
       setGeneralError(error instanceof Error ? error.message : "An error occurred. Please try again later");
     } finally {

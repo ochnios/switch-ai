@@ -84,26 +84,22 @@ export function UpdatePasswordForm({ token }: UpdatePasswordFormProps) {
     setIsLoading(true);
 
     try {
-      // TODO: Implement API call to /api/auth/update-password
-      // const response = await fetch("/api/auth/update-password", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ password, token }),
-      // });
-      //
-      // if (!response.ok) {
-      //   const error = await response.json();
-      //   if (response.status === 400) {
-      //     throw new Error("Password reset link is invalid or has expired");
-      //   }
-      //   throw new Error(error.message || "Failed to update password");
-      // }
-      //
-      // Redirect to login with success message
-      // window.location.href = "/auth/login?message=Password updated successfully";
+      const response = await fetch("/api/auth/update-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, token }),
+      });
 
-      console.log("Update password form submitted:", { password, token });
-      setGeneralError("Backend not yet implemented");
+      if (!response.ok) {
+        const error = await response.json();
+        if (response.status === 400) {
+          throw new Error("Password reset link is invalid or has expired");
+        }
+        throw new Error(error.message || "Failed to update password");
+      }
+
+      // Redirect to login with success message
+      window.location.href = "/auth/login?message=Password updated successfully";
     } catch (error) {
       setGeneralError(error instanceof Error ? error.message : "An error occurred. Please try again later");
     } finally {

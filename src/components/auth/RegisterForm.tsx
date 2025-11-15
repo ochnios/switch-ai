@@ -102,28 +102,22 @@ export function RegisterForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement API call to /api/auth/register
-      // const response = await fetch("/api/auth/register", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email, password }),
-      // });
-      //
-      // if (!response.ok) {
-      //   const error = await response.json();
-      //   if (response.status === 409) {
-      //     throw new Error("An account with this email already exists");
-      //   }
-      //   throw new Error(error.message || "Registration failed");
-      // }
-      //
-      // const data = await response.json();
-      //
-      // // Redirect to /app/new after successful registration
-      // window.location.href = "/app/new";
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-      console.log("Registration form submitted:", { email, password });
-      setGeneralError("Backend not yet implemented");
+      if (!response.ok) {
+        const error = await response.json();
+        if (response.status === 409) {
+          throw new Error("An account with this email already exists");
+        }
+        throw new Error(error.message || "Registration failed");
+      }
+
+      // Successful registration - redirect to new conversation page
+      window.location.href = "/app/new";
     } catch (error) {
       setGeneralError(error instanceof Error ? error.message : "An error occurred. Please try again later");
     } finally {
