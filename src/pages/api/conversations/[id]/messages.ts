@@ -1,11 +1,11 @@
 import type { APIRoute } from "astro";
 
-import { DEFAULT_USER_ID } from "../../../../db/supabase.client";
 import { Logger } from "../../../../lib/logger";
 import { paginationQuerySchema } from "../../../../lib/schemas/common.schema";
 import { sendMessageCommandSchema } from "../../../../lib/schemas/messages.schema";
 import { MessageService } from "../../../../lib/services/message.service";
 import { handleApiError } from "../../../../lib/utils/api-error-handler";
+import { getUserIdOrUnauthorized } from "../../../../lib/utils/auth-helpers";
 import type { ErrorResponseDto, MessageDto, PaginatedMessagesDto } from "../../../../types";
 
 export const prerender = false;
@@ -19,7 +19,8 @@ const postLogger = new Logger("POST /api/conversations/[id]/messages");
  */
 export const GET: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
-  const userId = DEFAULT_USER_ID;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   // Get conversation ID from path parameter
   const conversationId = context.params.id;
@@ -88,7 +89,8 @@ export const GET: APIRoute = async (context) => {
  */
 export const POST: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
-  const userId = DEFAULT_USER_ID;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   // Get conversation ID from path parameter
   const conversationId = context.params.id;

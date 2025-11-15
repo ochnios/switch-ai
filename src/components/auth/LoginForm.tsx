@@ -86,34 +86,26 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement API call to /api/auth/login
-      // const response = await fetch("/api/auth/login", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email, password }),
-      // });
-      //
-      // if (!response.ok) {
-      //   const error = await response.json();
-      //   throw new Error(error.message || "Invalid email or password");
-      // }
-      //
-      // const data = await response.json();
-      //
-      // // Redirect after successful login
-      // const redirectUrl = getRedirectUrl();
-      // if (redirectUrl) {
-      //   window.location.href = redirectUrl;
-      // } else {
-      //   // Fetch redirect URL from backend (last conversation or /app/new)
-      //   const redirectResponse = await fetch("/api/auth/redirect-url");
-      //   const { url } = await redirectResponse.json();
-      //   window.location.href = url;
-      // }
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-      // eslint-disable-next-line no-console
-      console.log("Login form submitted:", { email, password });
-      setGeneralError("Backend not yet implemented");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Invalid email or password");
+      }
+
+      // Successful login - redirect based on context
+      const redirectUrl = getRedirectUrl();
+      if (redirectUrl) {
+        // User was redirected from a protected route - go back there
+        window.location.href = redirectUrl;
+      } else {
+        // No redirect parameter - go to new conversation page
+        window.location.href = "/app/new";
+      }
     } catch (error) {
       setGeneralError(error instanceof Error ? error.message : "An error occurred. Please try again later");
     } finally {

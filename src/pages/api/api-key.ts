@@ -1,9 +1,9 @@
 import type { APIRoute } from "astro";
 
-import { DEFAULT_USER_ID } from "../../db/supabase.client";
 import { Logger } from "../../lib/logger";
 import { upsertApiKeyCommandSchema } from "../../lib/schemas/api-key.schema";
 import { ApiKeyService } from "../../lib/services/api-key.service";
+import { getUserIdOrUnauthorized } from "../../lib/utils/auth-helpers";
 import type { ApiKeyExistsDto, ErrorResponseDto, SuccessResponseDto } from "../../types";
 
 export const prerender = false;
@@ -18,7 +18,8 @@ const deleteLogger = new Logger("DELETE /api/api-key");
  */
 export const PUT: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
-  const userId = DEFAULT_USER_ID;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   try {
     // Parse and validate request body
@@ -89,7 +90,8 @@ export const PUT: APIRoute = async (context) => {
  */
 export const GET: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
-  const userId = DEFAULT_USER_ID;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   try {
     // Check if API key exists using service
@@ -126,7 +128,8 @@ export const GET: APIRoute = async (context) => {
  */
 export const DELETE: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
-  const userId = DEFAULT_USER_ID;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   try {
     // Delete API key using service

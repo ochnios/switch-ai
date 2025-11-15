@@ -173,6 +173,43 @@ export interface ModelsListDto {
 }
 
 // ============================================================================
+// Authentication Types
+// ============================================================================
+
+/**
+ * Authenticated user information
+ * Available in Astro.locals.user after middleware authentication
+ */
+export interface AuthUser {
+  id: string;
+  email: string;
+}
+
+/**
+ * Session response for client-side auth state
+ * @endpoint GET /api/auth/session
+ */
+export interface SessionResponseDto {
+  user: AuthUser | null;
+}
+
+/**
+ * Login response
+ * @endpoint POST /api/auth/login
+ */
+export interface LoginResponseDto {
+  user: AuthUser;
+}
+
+/**
+ * Registration response
+ * @endpoint POST /api/auth/register
+ */
+export interface RegisterResponseDto {
+  user: AuthUser;
+}
+
+// ============================================================================
 // Utility Types
 // ============================================================================
 

@@ -69,7 +69,7 @@ All form components located in `/src/components/auth/` directory:
 * Displays server-side validation errors
 * On success: redirects based on context:
   * If `redirect` query parameter exists (user was redirected from protected route), redirect to that URL
-  * Otherwise, redirect to`/app/new`
+  * Otherwise, redirect to `/app/new`
 
 **RegisterForm.tsx**
 
@@ -127,13 +127,13 @@ All form components located in `/src/components/auth/` directory:
 
 * After successful login:
   * If `redirect` query parameter exists (user came from protected route), redirect to that URL
-  * Otherwise, redirect to user's last active conversation (most recently created) or `/app/new` if no conversations exist
-* After successful registration → redirect to `/app/new` (new users always have no conversations)
+  * Otherwise, redirect to `/app/new`
+* After successful registration → redirect to `/app/new`
 * After password reset request → display success message on same page
 * After password update → redirect to `/auth/login` with success message
 * After logout → redirect to `/` (landing page)
-* Authenticated user accessing landing page `/` → redirect to last active conversation or `/app/new`
-* Authenticated user accessing `/auth/login` or `/auth/register` → redirect to last active conversation or `/app/new`
+* Authenticated user accessing landing page `/` → redirect to `/app/new`
+* Authenticated user accessing `/auth/login` or `/auth/register` → redirect to `/app/new`
 
 **Error Handling in Forms**:
 
@@ -184,12 +184,10 @@ All form components located in `/src/components/auth/` directory:
 2. User enters credentials
 3. Client-side validation runs
 4. On submit, form calls POST `/api/auth/login`
-5. On success: server sets session cookie
-6. Client requests GET `/api/conversations` to check for existing conversations
-7. User is redirected to:
+5. On success: server sets session cookie (managed automatically by Supabase SSR)
+6. User is redirected to:
    * The URL from `redirect` query parameter if present, OR
-   * The most recently created conversation (`/app/conversations/{id}`), OR
-   * `/app/new` if user has no conversations
+   * `/app/new` (default post-login destination)
 
 **Scenario: Password Recovery**
 
@@ -212,8 +210,8 @@ All form components located in `/src/components/auth/` directory:
 4. User is redirected to `/auth/login?redirect=/app/conversations/{id}` (or the originally requested URL)
 5. After successful login, user is redirected to the URL from the `redirect` query parameter
 
-**Note on "Last Active Conversation"**:
-For MVP, "last active conversation" is defined as the most recently created conversation (sorted by `created_at DESC`). The application does not track "last accessed" or "last viewed" timestamps. This means the first item in the conversations list (fetched from GET `/api/conversations`) is considered the "last active" conversation. This interpretation aligns with the existing database schema and keeps the MVP implementation simple.
+**Note on Post-Login Navigation**:
+For MVP, all successful logins redirect to `/app/new` unless the user was originally trying to access a protected route (in which case they're redirected back to that route). This keeps the implementation simple and consistent. Users can navigate to their existing conversations via the conversation list sidebar once they're in the app.
 
 **Scenario: User Logout**
 
@@ -395,26 +393,6 @@ All authentication endpoints located at `/src/pages/api/auth/*`:
 * Returns user data if authenticated, null otherwise
 * Used by client-side auth state management
 
-#### GET /api/auth/redirect-url
-
-**Request**: Query parameter `fallback` (optional, URL to use if no conversations exist)
-
-**Response** (200 OK):
-
-```typescript
-{
-  url: string;  // URL to redirect to (e.g., "/app/conversations/{id}" or "/app/new")
-}
-```
-
-**Behavior**:
-
-* Requires authentication (returns 401 if not authenticated)
-* Fetches user's conversations list (first item only, sorted by created\_at DESC)
-* If user has conversations, returns URL to most recent conversation
-* If user has no conversations, returns `/app/new` or the fallback URL if provided
-* Used by login/registration forms to determine post-authentication redirect target
-
 ### 2.2 Data Models and Validation
 
 #### Zod Schemas
@@ -531,23 +509,24 @@ Located in `/src/lib/utils/api-error-handler.ts`, extended to handle auth-specif
 
 **Cookie Configuration**:
 
-* Name: `sb-access-token`, `sb-refresh-token`
+* Managed automatically by Supabase SSR (`@supabase/ssr`)
+* Cookie names: Supabase automatically manages cookie naming
 * HttpOnly: true (prevents XSS attacks)
 * Secure: true in production (HTTPS only)
 * SameSite: 'lax' (CSRF protection)
-* Max-Age: 7 days for refresh token, 1 hour for access token
+* Max-Age: Controlled by Supabase (typically 7 days for refresh, 1 hour for access)
 
 **Session Refresh Strategy**:
 
-* Middleware checks token expiration on each request
-* Auto-refresh using refresh token if access token expired
-* If refresh fails, clear cookies and redirect to login
+* Middleware retrieves session on each request using `createSupabaseServerInstance`
+* Supabase SSR automatically handles token refresh via `getAll`/`setAll` cookie methods
+* If refresh fails, user is treated as unauthenticated and redirected to login
 
 **Session Storage**:
 
-* Tokens stored in HTTP-only cookies
+* Tokens stored in HTTP-only cookies (managed by Supabase)
 * No session data stored in localStorage/sessionStorage
-* User data available via `context.locals.user` in SSR
+* User data available via `context.locals.user` in SSR (set by middleware)
 * Client-side can access user via `/api/auth/session` endpoint
 
 ### 2.6 Middleware Updates
@@ -556,21 +535,18 @@ Located in `/src/lib/utils/api-error-handler.ts`, extended to handle auth-specif
 
 **Responsibilities**:
 
-1. Inject Supabase client into context (existing)
-2. Extract session tokens from cookies
-3. Verify and refresh session if needed
-4. Retrieve user data and add to `context.locals.user`
-5. Implement route protection logic:
-   * Public routes (unauthenticated only): `/auth/*` (except when already authenticated - see below)
-   * Semi-public route: `/` (landing page) - accessible but redirects authenticated users
-   * Protected routes: `/app/*`, `/api/*` (except `/api/auth/*`) → require authentication
-6. Handle authenticated user navigation:
+1. Create Supabase SSR client with proper cookie handling
+2. Inject Supabase client into `context.locals.supabase`
+3. Retrieve authenticated user and add to `context.locals.user`
+4. Implement route protection logic:
+   * Public routes: `/` (landing page), `/api/auth/login`, `/api/auth/register`, `/api/auth/session`
+   * Auth-only routes: `/auth/*` (login, register, reset-password, etc.) - redirect authenticated users to `/app/new`
+   * Protected routes: `/app/*` - require authentication, redirect to `/auth/login?redirect={original_url}` if not authenticated
+   * Protected API routes: `/api/*` (except `/api/auth/*`) - return 401 if not authenticated
+5. Handle authenticated user navigation:
    * If authenticated user accesses `/`, `/auth/login`, or `/auth/register`:
-     * Fetch user's most recent conversation (or use cached value)
-     * Redirect to `/app/conversations/{id}` if conversations exist
-     * Otherwise redirect to `/app/new`
-7. Redirect unauthenticated users accessing protected routes to `/auth/login?redirect={original_url}`
-8. Handle session refresh and cookie updates
+     * Redirect to `/app/new`
+6. Handle session refresh automatically (via Supabase SSR)
 
 **Context Extension**:
 
@@ -815,12 +791,11 @@ src/
 **User Experience Maintained**:
 
 * First-time users can view landing page without registration
-* "Get Started" button redirects to `/app/new`, which now requires authentication
+* "Get Started" button redirects to `/auth/login`, which then requires authentication
 * After login/registration:
-  * New users (from registration) → always redirected to `/app/new`
-  * Returning users (from login) → redirected to last active conversation (most recently created) or `/app/new` if no conversations exist
+  * All users → redirected to `/app/new` (simple, consistent behavior)
   * Users who were redirected from protected route → redirected back to originally requested URL
-* Authenticated users accessing landing page → automatically redirected to last conversation or `/app/new`
+* Authenticated users accessing landing page → automatically redirected to `/app/new`
 * All US-003 through US-013 requirements remain implementable with authenticated user context
 
 ## 5. FUTURE ENHANCEMENTS

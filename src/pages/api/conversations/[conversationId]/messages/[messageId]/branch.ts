@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
 
-import { DEFAULT_USER_ID } from "../../../../../../db/supabase.client";
 import { Logger } from "../../../../../../lib/logger";
 import { createBranchCommandSchema } from "../../../../../../lib/schemas/branch.schema";
 import { uuidParamSchema } from "../../../../../../lib/schemas/common.schema";
 import { ConversationService } from "../../../../../../lib/services/conversation.service";
+import { getUserIdOrUnauthorized } from "../../../../../../lib/utils/auth-helpers";
 import type { ConversationDto, ErrorResponseDto } from "../../../../../../types";
 
 export const prerender = false;
@@ -17,7 +17,8 @@ const logger = new Logger("POST /api/conversations/[conversationId]/messages/[me
  */
 export const POST: APIRoute = async (context) => {
   const supabase = context.locals.supabase;
-  const userId = DEFAULT_USER_ID;
+  const userId = getUserIdOrUnauthorized(context);
+  if (userId instanceof Response) return userId;
 
   // Get path parameters
   const conversationId = context.params.conversationId;
@@ -103,7 +104,11 @@ export const POST: APIRoute = async (context) => {
 
     // Create branch using ConversationService
     const conversationService = new ConversationService(supabase);
-    const newConversation: ConversationDto = await conversationService.createBranchFromMessage(messageId, type);
+    const newConversation: ConversationDto = await conversationService.createBranchFromMessage(
+      messageId,
+      type,
+      userId
+    );
 
     return new Response(JSON.stringify(newConversation), {
       status: 201,

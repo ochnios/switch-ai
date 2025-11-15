@@ -8,6 +8,9 @@ interface Props {
 }
 
 const { title = "switch-ai" } = Astro.props;
+
+// Route protection is handled by middleware (src/middleware/index.ts)
+// All /app/* routes require authentication and are protected server-side
 ---
 
 <Layout title={title}>

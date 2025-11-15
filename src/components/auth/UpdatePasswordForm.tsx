@@ -204,4 +204,3 @@ export function UpdatePasswordForm({ token }: UpdatePasswordFormProps) {
     </div>
   );
 }
-

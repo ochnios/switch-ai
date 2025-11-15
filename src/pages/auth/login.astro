@@ -2,8 +2,9 @@
 import Layout from "@/layouts/Layout.astro";
 import { LoginForm } from "@/components/auth/LoginForm";
 
-// TODO: Add SSR check - if user already authenticated, redirect to /app/new or last conversation
-// This will be implemented when middleware and auth system are ready
+// Authentication check is handled by middleware
+// Authenticated users are automatically redirected to /app/new
+// See src/middleware/index.ts for route protection logic
 ---
 
 <Layout title="Sign in - switch-ai">
