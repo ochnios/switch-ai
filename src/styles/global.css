@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "sonner/dist/styles.css";
+@import "highlight.js/styles/github-dark.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -175,5 +176,59 @@
 
   .scrollbar-auto-hide::-webkit-scrollbar-thumb:hover {
     background-color: oklch(var(--muted-foreground) / 0.3);
+  }
+
+  /* Markdown prose customization */
+  .prose {
+    @apply text-foreground;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .prose :where(code):not(:where([class~="not-prose"] *)) {
+    @apply font-mono;
+    word-break: break-all;
+  }
+
+  .prose :where(pre):not(:where([class~="not-prose"] *)) {
+    @apply my-4;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .prose :where(p):not(:where([class~="not-prose"] *)) {
+    @apply my-3;
+  }
+
+  .prose :where(ul, ol):not(:where([class~="not-prose"] *)) {
+    @apply my-3;
+  }
+
+  .prose :where(h1, h2, h3, h4, h5, h6):not(:where([class~="not-prose"] *)) {
+    @apply mt-6 mb-3 font-semibold;
+  }
+
+  .prose :where(blockquote):not(:where([class~="not-prose"] *)) {
+    @apply border-l-4 border-border pl-4 italic my-4;
+  }
+
+  .prose :where(table):not(:where([class~="not-prose"] *)) {
+    @apply my-4;
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .prose :where(thead):not(:where([class~="not-prose"] *)) {
+    @apply border-b border-border;
+  }
+
+  .prose :where(th, td):not(:where([class~="not-prose"] *)) {
+    @apply px-4 py-2;
+  }
+
+  .prose :where(a):not(:where([class~="not-prose"] *)) {
+    @apply text-primary underline underline-offset-2 hover:text-primary/80;
+    word-break: break-word;
   }
 }

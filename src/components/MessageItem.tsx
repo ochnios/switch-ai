@@ -2,6 +2,8 @@ import { User, Bot, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModelBadge } from "./ModelBadge";
 import { BranchAction } from "./BranchAction";
+import { CopyButton } from "./CopyButton";
+import { Markdown } from "./Markdown";
 import type { DisplayMessage } from "@/types/ui";
 
 interface MessageItemProps {
@@ -81,17 +83,16 @@ export function MessageItem({ message, conversationId }: MessageItemProps) {
       </div>
 
       {/* Message content */}
-      <div className="flex flex-1 flex-col gap-2">
-        {/* Header with model badge and branch action */}
+      <div className="flex flex-1 flex-col gap-2 min-w-0">
+        {/* Header with model badge and action buttons */}
         <div className="flex items-center gap-2">
           {message.data.model_name && <ModelBadge modelName={message.data.model_name} />}
+          <CopyButton content={message.data.content} />
           {conversationId && <BranchAction messageId={message.data.id} conversationId={conversationId} />}
         </div>
 
-        {/* Message text - will be replaced with Markdown rendering later */}
-        <div className="prose prose-sm dark:prose-invert max-w-none">
-          <p className="whitespace-pre-wrap">{message.data.content}</p>
-        </div>
+        {/* Message content with markdown rendering */}
+        <Markdown content={message.data.content} />
       </div>
     </div>
   );

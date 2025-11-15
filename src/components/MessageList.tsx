@@ -32,14 +32,14 @@ export function MessageList({ messages, isLoading, isSending, conversationId }: 
   }));
 
   // Add loading indicator when sending message
-  if (isSending && conversationId) {
+  if (isSending) {
     displayMessages.push({
       type: "loading",
       id: "loading-skeleton",
     });
   }
 
-  // Auto-scroll to bottom only when new messages are added
+  // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     const currentLength = displayMessages.length;
     const hasNewMessages = currentLength > prevMessagesLengthRef.current;
@@ -48,8 +48,15 @@ export function MessageList({ messages, isLoading, isSending, conversationId }: 
       const scrollElement = scrollRef.current;
       const isNearBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight < 150;
 
-      // Only auto-scroll if user is near the bottom or this is the first message
-      if (isNearBottom || prevMessagesLengthRef.current === 0) {
+      // Check if the last message is the loading indicator
+      const lastMessage = displayMessages[displayMessages.length - 1];
+      const isLoadingIndicator = lastMessage?.type === "loading";
+
+      // Auto-scroll if:
+      // 1. User is near the bottom
+      // 2. This is the first message
+      // 3. Loading indicator appears (user just sent a message)
+      if (isNearBottom || prevMessagesLengthRef.current === 0 || isLoadingIndicator) {
         requestAnimationFrame(() => {
           if (scrollRef.current) {
             scrollRef.current.scrollTo({
@@ -62,7 +69,7 @@ export function MessageList({ messages, isLoading, isSending, conversationId }: 
     }
 
     prevMessagesLengthRef.current = currentLength;
-  }, [displayMessages.length]);
+  }, [displayMessages]);
 
   // Loading state - show skeleton
   if (isLoading) {
