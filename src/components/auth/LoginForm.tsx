@@ -170,7 +170,7 @@ export function LoginForm() {
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
           <CardDescription>Sign in to your switch-ai account</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form data-testid="login-form" onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {/* Success Message Alert */}
             {successMessage && (
@@ -182,7 +182,7 @@ export function LoginForm() {
 
             {/* General Error Alert */}
             {generalError && (
-              <Alert variant="destructive">
+              <Alert data-testid="login-general-error" variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{generalError}</AlertDescription>
               </Alert>
@@ -193,6 +193,7 @@ export function LoginForm() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                data-testid="login-email-input"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
@@ -204,7 +205,7 @@ export function LoginForm() {
                 aria-describedby={emailError ? "email-error" : undefined}
               />
               {emailError && (
-                <p id="email-error" className="text-sm text-destructive">
+                <p id="email-error" data-testid="login-email-error" className="text-sm text-destructive">
                   {emailError}
                 </p>
               )}
@@ -215,6 +216,7 @@ export function LoginForm() {
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
+                data-testid="login-password-input"
                 type="password"
                 placeholder="••••••••"
                 value={password}
@@ -226,7 +228,7 @@ export function LoginForm() {
                 aria-describedby={passwordError ? "password-error" : undefined}
               />
               {passwordError && (
-                <p id="password-error" className="text-sm text-destructive">
+                <p id="password-error" data-testid="login-password-error" className="text-sm text-destructive">
                   {passwordError}
                 </p>
               )}
@@ -255,7 +257,7 @@ export function LoginForm() {
 
           <CardFooter className="flex flex-col space-y-4">
             {/* Submit Button */}
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button data-testid="login-submit-button" type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>

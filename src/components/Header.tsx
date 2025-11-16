@@ -86,6 +86,7 @@ export function Header() {
         {/* API Key Status Indicator */}
         {isAuthenticated && (
           <div
+            data-testid="api-key-status-indicator"
             className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs"
             role="status"
             aria-label={
@@ -111,7 +112,13 @@ export function Header() {
 
         {/* Settings button */}
         {isAuthenticated && (
-          <Button variant="ghost" size="icon" onClick={handleSettingsClick} aria-label="Open settings">
+          <Button
+            data-testid="header-settings-button"
+            variant="ghost"
+            size="icon"
+            onClick={handleSettingsClick}
+            aria-label="Open settings"
+          >
             <Settings className="h-5 w-5" />
           </Button>
         )}

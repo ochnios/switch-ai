@@ -35,6 +35,13 @@ The product offers a single, fluid interface that allows users to select an AI m
 * Supabase (PostgreSQL) for data storage and authentication
 * AI integration via OpenRouter.ai API
 
+**Testing:**
+
+* **Vitest** for unit tests, component tests, and integration tests (integrated with Vite ecosystem)
+* **React Testing Library (RTL)** for testing React components in isolation
+* **Playwright** for end-to-end (E2E) testing with API mocking capabilities
+* **MSW (Mock Service Worker)** for API mocking in tests
+
 **CI/CD / Deployment:**
 
 * GitHub Actions for continuous integration and deployment
@@ -74,6 +81,8 @@ The product offers a single, fluid interface that allows users to select an AI m
 * **`npm run lint`**: Runs ESLint to check for linting issues.
 * **`npm run lint:fix`**: Automatically fixes linting issues.
 * **`npm run format`**: Formats the code using Prettier.
+* **`npm run test`**: Runs unit and component tests using Vitest.
+* **`npm run test:e2e`**: Runs end-to-end tests using Playwright.
 
 ## Project Structure
 

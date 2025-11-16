@@ -22,13 +22,13 @@ export function SettingsView() {
       </div>
 
       {/* API Key Section */}
-      <div className="space-y-4 rounded-lg border bg-card p-6">
+      <div data-testid="api-key-section" className="space-y-4 rounded-lg border bg-card p-6">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">API Key Management</h2>
             <ApiKeyStatusBadge status={keyStatus} />
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p data-testid="api-key-instruction-text" className="text-sm text-muted-foreground">
             Enter your OpenRouter API key to start using the application. Get your key from{" "}
             <a
               href="https://openrouter.ai/keys"
