@@ -4,6 +4,8 @@ This directory contains all tests for the switch-ai application.
 
 > IMPORTANT NOTE: For now only P0 priority level unit tests are implemented
 
+Before running tests you should create `.env.test` based on `.env.test.example` (especially for E2E tests).
+
 ## Structure
 
 ```
@@ -17,10 +19,8 @@ tests/
 
 ## Unit & Component Tests
 
-Unit and component tests are located next to the source files they test, following the pattern:
-
-* `src/lib/services/conversation.service.ts`
-* `src/lib/services/conversation.service.test.ts`
+Unit tests are co-located with source files following the pattern:
+`src/lib/services/conversation.service.ts` → `tests/unit/services/conversation.service.test.ts`
 
 ### Running Tests
 
