@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
 import type { AuthUser } from "@/types";
-import { AuthenticationError, mapSupabaseAuthError, TokenError } from "@/lib/errors/auth.errors";
+import { AuthenticationError, AuthError, mapSupabaseAuthError, TokenError } from "@/lib/errors/auth.errors";
 import { Logger } from "@/lib/logger";
 
 /**
@@ -149,6 +149,11 @@ export class AuthService {
         email: data.user.email,
       };
     } catch (error) {
+      // If it's already one of our custom errors, rethrow it
+      if (error instanceof AuthError) {
+        throw error;
+      }
+      // Otherwise, map it
       throw mapSupabaseAuthError(error);
     }
   }

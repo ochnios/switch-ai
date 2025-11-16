@@ -2,6 +2,8 @@
 
 This directory contains all tests for the switch-ai application.
 
+> IMPORTANT NOTE: For now only P0 priority level unit tests are implemented
+
 ## Structure
 
 ```
@@ -9,6 +11,7 @@ tests/
 ├── setup.ts           # Vitest global setup file
 ├── helpers/           # Test helper functions and utilities
 ├── mocks/             # Mock data and mock implementations
+├── unit/              # vitest unit tests
 └── e2e/               # Playwright E2E tests
 ```
 

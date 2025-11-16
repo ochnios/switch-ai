@@ -64,6 +64,45 @@ export const createMockOpenRouterService = () => ({
 });
 
 /**
+ * Mock OpenRouter SDK chat completion response (matches @openrouter/sdk structure)
+ */
+export const createMockOpenRouterSDKChatResponse = (overrides = {}) => ({
+  choices: [
+    {
+      message: {
+        role: "assistant",
+        content: "This is a mock response from the AI assistant.",
+      },
+    },
+  ],
+  model: "openai/gpt-4o-mini",
+  usage: {
+    promptTokens: 25,
+    completionTokens: 15,
+  },
+  ...overrides,
+});
+
+/**
+ * Mock OpenRouter SDK models list response (matches @openrouter/sdk structure)
+ */
+export const createMockOpenRouterSDKModelsResponse = (overrides = {}) => ({
+  data: [
+    { id: "openai/gpt-4o-mini", name: "GPT-4o Mini" },
+    { id: "anthropic/claude-3-haiku", name: "Claude 3 Haiku" },
+  ],
+  ...overrides,
+});
+
+/**
+ * Mock OpenRouter SDK error (matches @openrouter/sdk error structure)
+ */
+export const createMockOpenRouterSDKError = (statusCode: number, message: string) => ({
+  statusCode,
+  message,
+});
+
+/**
  * Common test scenarios for OpenRouter API
  */
 export const openRouterTestScenarios = {
