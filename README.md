@@ -3,6 +3,8 @@
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/Version-0.0.1-informational.svg)
 
+![Demo](assets/demo.gif)
+
 ## Table of Contents
 
 * [Project Description](#project-description)
@@ -19,6 +21,8 @@
 **switch-ai** is a chat application designed for advanced Large Language Model (LLM) users who require greater flexibility and control over their conversations. The application focuses on solving two key problems: the inability to seamlessly switch between different AI models within a single conversation, and the difficulty in exploring alternative threads without losing context.
 
 The product offers a single, fluid interface that allows users to select an AI model for each message sent and to create new, independent conversation threads (branching). The application is aimed at "power users," operates on a BYOK (Bring Your Own Key) model with OpenRouter integration, and prioritizes functionality and workflow efficiency.
+
+> **Alpha version coming soon!** Stay tuned for early access to the first release.
 
 ## Tech Stack
 
