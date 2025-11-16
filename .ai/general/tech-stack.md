@@ -21,6 +21,14 @@
 * Access to a wide range of models (OpenAI, Anthropic, Google, and many others), which will allow us to find a solution ensuring high efficiency and low costs
 * Allows setting financial limits on API keys
 
+## Testing:
+
+* **Vitest** - test runner for unit tests, component tests, and integration tests, integrated with the Vite ecosystem (used by Astro)
+* **React Testing Library (RTL)** - for rendering and testing React component interactions in isolation
+* **Playwright** - modern E2E testing tool that enables easy API mocking (crucial for OpenRouter and Supabase) and cross-browser testing
+* **MSW (Mock Service Worker)** - for API mocking in tests, or Playwright's built-in `page.route` functionality for E2E tests
+* **@axe-core/playwright** - for automated accessibility (A11y) testing in E2E pipeline
+
 ## CI/CD and Hosting:
 
 * Github Actions for creating CI/CD pipelines
