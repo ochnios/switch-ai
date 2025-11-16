@@ -10,6 +10,9 @@ import { useEffect, useRef } from "react";
 export function useFocusOnNavigate<T extends HTMLElement>(deps: unknown[] = []) {
   const elementRef = useRef<T>(null);
 
+  // Extract pathname to avoid complex expression in dependency array
+  const pathname = typeof window !== "undefined" ? window.location.pathname : null;
+
   useEffect(() => {
     // Focus the element after navigation
     if (elementRef.current) {
@@ -18,11 +21,8 @@ export function useFocusOnNavigate<T extends HTMLElement>(deps: unknown[] = []) 
         elementRef.current?.focus();
       }, 100);
     }
-  }, [
-    ...deps,
-    // Re-focus when navigation happens
-    typeof window !== "undefined" ? window.location.pathname : null,
-  ]);
+    // Note: Spread deps and dynamic pathname are intentional for flexible dependency tracking
+  }, [...deps, pathname]);
 
   return elementRef;
 }

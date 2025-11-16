@@ -69,8 +69,8 @@ export function ResetPasswordForm() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to send reset email");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to send reset email");
       }
 
       // Display success message
@@ -108,7 +108,9 @@ export function ResetPasswordForm() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Reset password</CardTitle>
-          <CardDescription>Enter your email address and we'll send you a link to reset your password</CardDescription>
+          <CardDescription>
+            Enter your email address and we&apos;ll send you a link to reset your password
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">

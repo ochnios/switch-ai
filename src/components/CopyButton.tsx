@@ -29,7 +29,7 @@ export function CopyButton({ content }: CopyButtonProps) {
       setTimeout(() => {
         setIsCopied(false);
       }, 2000);
-    } catch (error) {
+    } catch {
       toast.error("Failed to copy to clipboard");
     }
   };
