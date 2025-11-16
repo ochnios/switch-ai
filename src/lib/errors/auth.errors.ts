@@ -10,7 +10,7 @@
 export class AuthError extends Error {
   constructor(
     message: string,
-    public statusCode: number = 500
+    public statusCode = 500
   ) {
     super(message);
     this.name = "AuthError";
@@ -22,7 +22,7 @@ export class AuthError extends Error {
  * HTTP Status: 401 Unauthorized
  */
 export class AuthenticationError extends AuthError {
-  constructor(message: string = "Invalid email or password") {
+  constructor(message = "Invalid email or password") {
     super(message, 401);
     this.name = "AuthenticationError";
   }
@@ -33,7 +33,7 @@ export class AuthenticationError extends AuthError {
  * HTTP Status: 409 Conflict (email exists) or 400 Bad Request
  */
 export class RegistrationError extends AuthError {
-  constructor(message: string = "Registration failed", statusCode: number = 400) {
+  constructor(message = "Registration failed", statusCode = 400) {
     super(message, statusCode);
     this.name = "RegistrationError";
   }
@@ -45,8 +45,8 @@ export class RegistrationError extends AuthError {
  */
 export class ValidationError extends AuthError {
   constructor(
-    message: string = "Validation failed",
-    public errors?: Array<{ field: string; message: string }>
+    message = "Validation failed",
+    public errors?: { field: string; message: string }[]
   ) {
     super(message, 400);
     this.name = "ValidationError";
@@ -58,7 +58,7 @@ export class ValidationError extends AuthError {
  * HTTP Status: 400 Bad Request or 401 Unauthorized
  */
 export class TokenError extends AuthError {
-  constructor(message: string = "Invalid or expired token", statusCode: number = 400) {
+  constructor(message = "Invalid or expired token", statusCode = 400) {
     super(message, statusCode);
     this.name = "TokenError";
   }

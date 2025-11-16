@@ -26,7 +26,7 @@ export const cookieOptions: CookieOptionsWithName = {
 /**
  * Helper function to parse cookie header into array format expected by Supabase
  */
-function parseCookieHeader(cookieHeader: string): Array<{ name: string; value: string }> {
+function parseCookieHeader(cookieHeader: string): { name: string; value: string }[] {
   if (!cookieHeader) return [];
 
   return cookieHeader.split(";").map((cookie) => {
@@ -44,7 +44,14 @@ function parseCookieHeader(cookieHeader: string): Array<{ name: string; value: s
  * @returns Supabase client configured for SSR with automatic cookie management
  */
 export const createSupabaseServerInstance = (context: { headers: Headers; cookies: AstroCookies }) => {
-  return createServerClient<Database>(import.meta.env.SUPABASE_URL!, import.meta.env.SUPABASE_KEY!, {
+  const supabaseUrl = import.meta.env.SUPABASE_URL;
+  const supabaseKey = import.meta.env.SUPABASE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("SUPABASE_URL and SUPABASE_KEY must be set");
+  }
+
+  return createServerClient<Database>(supabaseUrl, supabaseKey, {
     cookieOptions,
     cookies: {
       getAll() {
