@@ -100,6 +100,14 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+      - name: Upload E2E test artifacts
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: e2e-test-artifacts
+          path: test-results/
+          retention-days: 7
+
   status-comment:
     name: Update PR Status
     needs: [lint, unit-test, e2e-test]
