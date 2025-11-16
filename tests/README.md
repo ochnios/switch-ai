@@ -2,7 +2,11 @@
 
 This directory contains all tests for the switch-ai application.
 
-> IMPORTANT NOTE: For now only P0 priority level unit tests are implemented
+> **IMPORTANT**:
+> Only `P0` priority level unit tests are implemented
+
+> **IMPORTANT**:
+> Only `E2E-APIKEY-01` end to end test is implemented for now
 
 Before running tests you should create `.env.test` based on `.env.test.example` (especially for E2E tests).
 

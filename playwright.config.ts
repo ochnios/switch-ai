@@ -34,21 +34,22 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    // Setup project
+    // Setup project - runs first to authenticate
     {
       name: "setup",
       testMatch: /.*\.setup\.ts/,
-      teardown: "cleanup",
     },
-    // Cleanup project
-    {
-      name: "cleanup",
-      testMatch: /global\.teardown\.ts/,
-    },
+    // Test project - runs after setup
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"], storageState: "playwright/.auth/user.json" },
       dependencies: ["setup"],
+    },
+    // Cleanup project - runs after all tests complete
+    {
+      name: "cleanup",
+      testMatch: /global\.teardown\.ts/,
+      dependencies: ["chromium"],
     },
   ],
 

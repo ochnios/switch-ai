@@ -22,7 +22,7 @@ export function ApiKeyStatusBadge({ status }: ApiKeyStatusBadgeProps) {
 
   if (status === "exists") {
     return (
-      <Badge variant="default" className="bg-green-600 hover:bg-green-600">
+      <Badge data-testid="api-key-status-badge" variant="default" className="bg-green-600 hover:bg-green-600">
         <CheckCircle2 />
         API Key Saved
       </Badge>
@@ -31,7 +31,7 @@ export function ApiKeyStatusBadge({ status }: ApiKeyStatusBadgeProps) {
 
   if (status === "not_exists") {
     return (
-      <Badge variant="destructive">
+      <Badge data-testid="api-key-status-badge" variant="destructive">
         <XCircle />
         No API Key
       </Badge>
@@ -40,7 +40,7 @@ export function ApiKeyStatusBadge({ status }: ApiKeyStatusBadgeProps) {
 
   // error state
   return (
-    <Badge variant="destructive">
+    <Badge data-testid="api-key-status-badge" variant="destructive">
       <AlertCircle />
       Error checking status
     </Badge>

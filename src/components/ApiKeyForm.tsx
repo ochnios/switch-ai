@@ -80,6 +80,7 @@ export function ApiKeyForm({ currentStatus, formStatus, onSave, onDelete }: ApiK
           <div className="relative">
             <Input
               id="apiKey"
+              data-testid="api-key-input"
               type={showApiKey ? "text" : "password"}
               placeholder="sk-or-v1-..."
               disabled={isSaveDisabled}
@@ -100,7 +101,7 @@ export function ApiKeyForm({ currentStatus, formStatus, onSave, onDelete }: ApiK
             </Button>
           </div>
           {errors.apiKey && (
-            <p className="text-sm text-destructive" role="alert">
+            <p data-testid="api-key-validation-error" className="text-sm text-destructive" role="alert">
               {errors.apiKey.message}
             </p>
           )}
@@ -112,7 +113,7 @@ export function ApiKeyForm({ currentStatus, formStatus, onSave, onDelete }: ApiK
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between gap-2">
-          <Button type="submit" disabled={isSaveDisabled} className="min-w-24">
+          <Button data-testid="api-key-save-button" type="submit" disabled={isSaveDisabled} className="min-w-24">
             {isSaving ? (
               <>
                 <Loader2 className="animate-spin" />
